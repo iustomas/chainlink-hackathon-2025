@@ -1,4 +1,15 @@
+<img src="./webapp/public/assets/oleo-1.png" alt="new-york-tomas" style="border-radius: 10px">
+
+<br/>
+
 # 🧑‍⚖️ Tomas - Web3 Legal Agent (MVP)
+
+<p>
+    <img src="https://img.shields.io/badge/tomas-v0.1.0-CBA135">
+    <img src="https://img.shields.io/badge/base-network-0052FF">
+    <img src="https://img.shields.io/badge/chainlink-oracle-375BD2">
+    <img src="https://img.shields.io/badge/status-mvp-green">
+</p>
 
 **Tomas** is an AI-powered legal agent specialized in Web3 law, currently focused on USA and Chile jurisdictions.
 
@@ -10,7 +21,7 @@ This MVP focuses on the **initial intake module**, allowing founders to open a c
 
 - Connect wallet
 - Paid intake system to initiate a legal case.
-- Payment in ETH, priced in USDT.
+- Payment in ETH, priced in USDC.
 - On-chain price conversion using Chainlink Oracle.
 - Complete intake conversation to collect project information.
 
