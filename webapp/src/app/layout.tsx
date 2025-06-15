@@ -4,8 +4,12 @@ import type { Metadata } from "next";
 // fonts
 import { Oxanium } from "next/font/google";
 
+// context
+import ContextProvider from "../../context";
+
 // styles
 import "./globals.css";
+import { headers } from "next/headers";
 
 const oxanium = Oxanium({
   variable: "--font-oxanium",
@@ -22,9 +26,13 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = headers();
+  const cookies = cookieStore.toString();
   return (
     <html lang="en" className={oxanium.variable}>
-      <body>{children}</body>
+      <body>
+        <ContextProvider cookies={cookies}>{children}</ContextProvider>
+      </body>
     </html>
   );
 }

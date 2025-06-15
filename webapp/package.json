@@ -9,11 +9,16 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@xyflow/react": "^12.7.0",    
+    "@reown/appkit": "^1.7.9",
+    "@reown/appkit-adapter-wagmi": "^1.7.9",
+    "@tanstack/react-query": "^5.80.7",
+    "@xyflow/react": "^12.7.0",
     "next": "15.3.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-icons": "^5.5.0"
+    "react-icons": "^5.5.0",
+    "viem": "^2.31.2",
+    "wagmi": "^2.15.6"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
