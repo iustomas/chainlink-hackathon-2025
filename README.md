@@ -6,8 +6,8 @@
 
 <p>
     <img src="https://img.shields.io/badge/tomas-v0.1.0-CBA135">
-    <img src="https://img.shields.io/badge/base-network-0052FF">
-    <img src="https://img.shields.io/badge/chainlink-oracle-375BD2">
+    <img src="https://img.shields.io/badge/network-BASE-0052FF">
+    <img src="https://img.shields.io/badge/oracle-chainlink-375BD2">
     <img src="https://img.shields.io/badge/status-mvp-green">
 </p>
 
