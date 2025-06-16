@@ -18,6 +18,9 @@ import { useAccount, useDisconnect } from "wagmi";
 // reown
 import { modal } from "../../context";
 
+// utils
+import { formatAddress } from "../../utils/format-address";
+
 interface NavbarProps {
   forceHover?: boolean;
 }
@@ -90,10 +93,6 @@ export default function Navbar({ forceHover = false }: NavbarProps) {
       setDrawerOpen(false);
       setIsClosing(false);
     }, 300);
-  };
-
-  const formatAddress = (address: string) => {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
   const handleConnect = () => {

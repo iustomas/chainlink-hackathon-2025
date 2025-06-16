@@ -23,15 +23,3 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
-
-.react-flow__handle {
-  opacity: 0 !important;
-  pointer-events: none !important;
-}
-
-.react-flow__handle {
-  background: transparent !important;
-  border: none !important;
-  width: 1px !important;
-  height: 1px !important;
-}
