@@ -20,9 +20,9 @@ This MVP focuses on the **initial intake module**, allowing founders to open a c
 ## 🎯 Current MVP Scope
 
 - ✅ Connect wallet
-- Paid intake system to initiate a legal case.
-- Payment in ETH, priced in USDC.
-- On-chain price conversion using Chainlink Oracle.
+- ✅ Paid intake system to initiate a legal case.
+- ✅ Payment in ETH, priced in USDC.
+- ✅ On-chain price conversion using Chainlink Oracle.
 - Complete intake conversation to collect project information.
 
 ---

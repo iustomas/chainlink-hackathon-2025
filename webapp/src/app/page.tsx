@@ -48,9 +48,9 @@ export default function Home() {
 
         {/* Buttons */}
         <div className="flex flex-col md:flex-row justify-center items-center gap-4">
-          <Link href="/" passHref>
+          <Link href="/app" passHref>
             <button className="px-6 py-2 rounded-[10px] border border-white font-semibold transition-colors duration-200 text-white hover:bg-black hover:text-white hover:border-black cursor-pointer w-full md:w-auto">
-              View demo
+              Start legal case
             </button>
           </Link>
 
