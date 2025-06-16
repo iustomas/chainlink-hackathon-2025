@@ -4,7 +4,7 @@
 import Navbar from "@/components/Navbar";
 
 // wagmi
-import { useAccount, useReadContract } from "wagmi";
+import { useAccount, useReadContract, useWriteContract } from "wagmi";
 
 // icons
 import { FaWallet } from "react-icons/fa";
@@ -15,6 +15,9 @@ import { modal } from "../../../context";
 // onchain
 import INTAKE_PAYMENT_ABI from "../../../onchain/IntakePaymentABI.json";
 import { INTAKE_PAYMENT_CONTRACT_ADDRESS } from "../../../onchain";
+
+// components
+import Steps from "@/components/Steps";
 
 export default function App() {
   const { address, isConnected } = useAccount();
@@ -38,9 +41,30 @@ export default function App() {
     },
   });
 
+  const { writeContract, isPending } = useWriteContract();
+
   const handleConnect = () => {
     if (modal) {
       modal.open();
+    }
+  };
+
+  const handlePayment = async () => {
+    if (!requiredETHAmount) return;
+
+    // Add 10% to the required amount to account for potential price fluctuations
+    const amountWithBuffer =
+      (BigInt(requiredETHAmount as bigint) * BigInt(110)) / BigInt(100);
+
+    try {
+      await writeContract({
+        address: INTAKE_PAYMENT_CONTRACT_ADDRESS as `0x${string}`,
+        abi: INTAKE_PAYMENT_ABI,
+        functionName: "payForIntake",
+        value: amountWithBuffer,
+      });
+    } catch (error) {
+      console.error("Error making payment:", error);
     }
   };
 
@@ -48,6 +72,56 @@ export default function App() {
     <main className="relative min-h-screen bg-[#F4F3ED]">
       <Navbar />
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)]">
+        {/* Steps Progress */}
+        <Steps currentStep={1} />
+
+        {/* First Step */}
+        <div className="max-w-3xl mx-auto text-left mt-[40px]">
+          <h2 className="text-3xl font-bold text-gray-800 mb-6">
+            What are you paying for in this first step?
+          </h2>
+
+          <p className="text-gray-600 mb-8">
+            The intake payment allows you to initiate the legal evaluation
+            process with Tomas. This initial payment does not include contract
+            drafting or delivery of legal documents.
+          </p>
+
+          <div className="grid md:grid-cols-3 gap-8 mb-8">
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h3 className="text-xl font-semibold text-gray-800 mb-3">
+                Case Opening
+              </h3>
+
+              <p className="text-gray-600">
+                Tomas collects key information about your situation or project.
+              </p>
+            </div>
+
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h3 className="text-xl font-semibold text-gray-800 mb-3">
+                Preliminary Analysis
+              </h3>
+
+              <p className="text-gray-600">
+                Based on the provided information, Tomas reviews your case and
+                evaluates your initial needs.
+              </p>
+            </div>
+
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h3 className="text-xl font-semibold text-gray-800 mb-3">
+                Personalized Proposal
+              </h3>
+
+              <p className="text-gray-600">
+                After the analysis, you will receive a customized service
+                proposal with a clear scope and pricing before moving forward.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {!isConnected ? (
           <button
             className="px-8 py-4 text-xl font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
@@ -79,8 +153,16 @@ export default function App() {
                     : "Cargando..."}
                 </p>
 
-                <button className="px-8 py-4 text-xl font-semibold text-white bg-yellow-600 rounded-lg hover:bg-yellow-700 transition-colors cursor-pointer">
-                  Pay Service
+                <button
+                  onClick={handlePayment}
+                  disabled={isPending}
+                  className={`px-8 py-4 text-xl font-semibold text-white rounded-lg transition-colors cursor-pointer ${
+                    isPending
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-yellow-600 hover:bg-yellow-700"
+                  }`}
+                >
+                  {isPending ? "Processing..." : "Pay Service"}
                 </button>
               </div>
             )}
