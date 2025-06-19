@@ -1,0 +1,13 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# API Endpoint Documentation with Bruno
+When creating or modifying API endpoints, always provide the corresponding Bruno collection documentation. In the folder bruno-tomas
+
+## Format:
+For each endpoint, provide:
+1. The endpoint code
+2. Bruno collection file (.bru format)
+3. Include proper HTTP method, URL, headers, and body examples

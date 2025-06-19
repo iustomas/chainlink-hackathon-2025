@@ -1,0 +1,17 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Code Format 
+
+Always add a blank line before return statements, except:
+- When the return is the first line in a function/method
+- When the return immediately follows an opening brace
+- When there's already a blank line
+
+Example:
+```typescript
+const users = await ctx.usersStorage.getAllUsers();
+
+return res.status(200).json({ users });

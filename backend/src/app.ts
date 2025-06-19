@@ -9,8 +9,10 @@ import { healthRoutes } from "./api/health/health.routes.js";
 
 const app = new Hono();
 
-// middleware
-app.use("*", logger());
+// middleware - only use logger in non-test environments
+if (process.env.NODE_ENV !== "test") {
+  app.use("*", logger());
+}
 app.use("*", cors());
 app.use("*", prettyJSON());
 

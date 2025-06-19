@@ -1,0 +1,16 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Function Documentation Rules
+- All function documentation must be written in English
+- Each function must have a clear description of its purpose
+- Document all parameters including their types and purpose
+- Document the return value and its type
+- Include examples of usage when the function is complex
+- Document any side effects or important behaviors
+- Specify any exceptions that might be thrown
+- Keep documentation up to date with function changes
+- Use consistent formatting across all function documentation
+- Include performance considerations for complex functions

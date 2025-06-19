@@ -1,0 +1,13 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Comment Rules
+- All code comments must be written in English
+- Comments should be clear, concise, and descriptive
+- Use proper English grammar and punctuation
+- Avoid slang or informal language in comments
+- Include comments for complex logic or important business rules
+- Document function parameters and return values in English
+- Keep comments up to date with code changes
