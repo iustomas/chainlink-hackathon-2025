@@ -10,6 +10,9 @@ import {
 // validator input
 import { validateTalkWithTomasPraefatioRequest } from "./validators/tomas.validator.js";
 
+// llm service
+import { llmServiceManager } from "../../services/llm/index.js";
+
 // controller
 export const tomasController = {
   // talk with tomas praefatio endpoint
@@ -31,16 +34,42 @@ export const tomasController = {
         );
       }
 
-      // TODO: Integrate with tomas-web3 AI agent
-      // For now, return a mock response
-      const response: TalkWithTomasResponse = {
-        success: true,
-        response: `Tomas ha recibido tu mensaje para el caso ${body.caseId}. Este es el inicio de la fase de descubrimiento.`,
-        caseId: body.caseId,
-        timestamp: new Date().toISOString(),
-      };
+      try {
+        const PROVIDER = "gemini";
+        const MODEL = "gemini-2.0-flash-exp";
 
-      return c.json(response);
+        const llmResponse = await llmServiceManager.generateText(
+          {
+            prompt: `Usuario: ${body.message}\nCaso ID: ${body.caseId}`,
+            systemPrompt: `Eres Tomas, un asistente legal especializado en derecho web3 y blockchain. 
+          Responde de manera profesional y útil al usuario. 
+          Si no tienes información suficiente, indícalo claramente.`,
+            model: MODEL,
+          },
+          PROVIDER
+        );
+
+        const response: TalkWithTomasResponse = {
+          success: true,
+          response: llmResponse.content,
+          caseId: body.caseId,
+          timestamp: new Date().toISOString(),
+        };
+
+        return c.json(response);
+      } catch (llmError) {
+        console.error("LLM service error:", llmError);
+
+        // Fallback response if LLM service fails
+        const response: TalkWithTomasResponse = {
+          success: true,
+          response: `Tomas ha recibido tu mensaje para el caso ${body.caseId}. Este es el inicio de la fase de descubrimiento. (Respuesta de respaldo - servicio LLM no disponible)`,
+          caseId: body.caseId,
+          timestamp: new Date().toISOString(),
+        };
+
+        return c.json(response);
+      }
     } catch (error) {
       console.error("Error in talkWithTomasPraefatio:", error);
 

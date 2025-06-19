@@ -8,6 +8,10 @@ build:
 	@rm -rf dist
 	@npm run build
 
+dev:
+	@echo "[dev] Starting development server..."
+	@npm run dev
+
 deploy: build
 	@echo "[deploy] Building and deploying $(APP_NAME)..."
 	@docker build --platform=linux/amd64 -t gcr.io/$(PROJECT_ID)/$(APP_NAME):$(GIT_SHA) .

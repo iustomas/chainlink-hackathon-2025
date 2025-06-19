@@ -4,9 +4,21 @@ import { logger } from "hono/logger";
 import { cors } from "hono/cors";
 import { prettyJSON } from "hono/pretty-json";
 
+// dotenv
+import dotenv from "dotenv";
+
 // routes
 import { healthRoutes } from "./api/health/health.routes.js";
 import { tomasRoutes } from "./api/tomas/tomas.routes.js";
+
+// LLM services
+import { initializeLLMServices } from "./services/llm/llm.init.js";
+
+// load env
+dotenv.config();
+
+// Initialize services
+initializeLLMServices();
 
 const app = new Hono();
 
