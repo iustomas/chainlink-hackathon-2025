@@ -18,6 +18,7 @@ import { INTAKE_PAYMENT_CONTRACT_ADDRESS } from "../../../onchain";
 
 // components
 import Steps from "@/components/Steps";
+import TomasPraefatioChat from "@/components/TomasPraefatioChat";
 
 export default function App() {
   const { address, isConnected } = useAccount();
@@ -69,7 +70,7 @@ export default function App() {
   };
 
   return (
-    <main className="relative min-h-screen bg-[#F4F3ED]">
+    <main className="relative min-h-screen bg-[#FAF9F5]">
       <Navbar />
 
       <div className="flex flex-col min-h-[calc(100vh-80px)] w-[1000px] mx-auto">
@@ -168,18 +169,7 @@ export default function App() {
           </div>
         )}
 
-        {hasPaid && (
-          <div className="mx-auto mt-[40px] w-full">
-            <h2 className="text-3xl font-bold text-gray-800 mb-6">
-              Talking with Tomas
-            </h2>
-
-            <p className="text-gray-600 mb-8">
-              Tomas will call you to discuss your case and answer any questions
-              you have.
-            </p>
-          </div>
-        )}
+        {hasPaid && <TomasPraefatioChat />}
       </div>
     </main>
   );

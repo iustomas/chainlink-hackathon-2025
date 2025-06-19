@@ -60,8 +60,6 @@ export class ZepService {
     sessionId: string,
     messages: ZepMessage[]
   ) {
-    console.log("Adding messages to ZEP", userId, sessionId, messages);
-
     await this.ensureUser(userId);
     await this.ensureSession(userId, sessionId);
     await client.memory.add(sessionId, { messages });
