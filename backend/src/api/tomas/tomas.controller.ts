@@ -17,6 +17,10 @@ import { validateTalkWithTomasPraefatioRequest } from "./validators/tomas.valida
 import { llmServiceManager } from "../../services/llm/index.js";
 import { PROVIDERS, MODELS } from "../../services/llm/lllm.constants.js";
 
+// zep service
+import { ZepService } from "../../services/zep.service.js";
+import type { RoleType } from "@getzep/zep-cloud/api";
+
 // read personality file
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -54,11 +58,35 @@ export const tomasController = {
         const llmResponse = await llmServiceManager.generateText(
           {
             prompt: `User message: ${body.message}\nCase ID: ${body.caseId}`,
-            systemPrompt: `Your personality is as follows:\n${personality}\nYou are Tomas, a legal assistant specialized in web3 and blockchain law. Always respond to the user in a professional, clear, and helpful manner. If you do not have enough information to answer, state this explicitly.`,
+            systemPrompt: `
+            Your personality is as follows:\n${personality}\n
+            
+            You are Tomas, a legal assistant specialized in web3 and blockchain law. Always respond to the user in a professional, clear, and helpful manner. If you do not have enough information to answer, state this explicitly.`,
             model: MODEL,
           },
           PROVIDER
         );
+
+        // Extract user address from caseId (format: 0x...-01)
+        const [userId] = body.caseId.split("-");
+        const sessionId = body.caseId;
+
+        // Prepare ZEP messages
+        const zepMessages = [
+          {
+            role: userId,
+            content: body.message,
+            roleType: "user" as RoleType,
+          },
+          {
+            role: "Tomas",
+            content: llmResponse.content,
+            roleType: "assistant" as RoleType,
+          },
+        ];
+
+        // Store conversation in ZEP
+        await ZepService.addMessages(userId, sessionId, zepMessages);
 
         const response: TalkWithTomasResponse = {
           success: true,

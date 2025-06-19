@@ -79,7 +79,15 @@ export class LLMServiceManager {
     provider: LLMProvider
   ): Promise<LLMResponse> {
     const service = this.getService(provider);
-    return await service.generateText(request);
+
+    // console.debug("Generating text with provider", provider);
+    // console.debug("Model", request.model);
+
+    const response = await service.generateText(request);
+
+    // console.debug("Response", response);
+
+    return response;
   }
 
   setDefaultProvider(provider: LLMProvider): void {
