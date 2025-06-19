@@ -1,7 +1,9 @@
+// hono
 import { Context } from "hono";
 
+// controller
 export const healthController = {
-  // Get basic health status
+  // get basic health status
   getStatus: (c: Context) => {
     return c.json({
       status: "ok",
@@ -10,7 +12,7 @@ export const healthController = {
     });
   },
 
-  // Get detailed system information
+  // get detailed system information
   getDetails: (c: Context) => {
     const memoryUsage = process.memoryUsage();
     const cpuUsage = process.cpuUsage();
