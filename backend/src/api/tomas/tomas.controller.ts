@@ -52,8 +52,8 @@ export const tomasController = {
       }
 
       try {
-        const PROVIDER = PROVIDERS.GEMINI;
-        const MODEL = MODELS.GEMINI_2_5_FLASH_PREVIEW_05_20;
+        const PROVIDER = PROVIDERS.ANTHROPIC;
+        const MODEL = MODELS.CLAUDE_SONNET_4_20250514;
 
         const llmResponse = await llmServiceManager.generateText(
           {

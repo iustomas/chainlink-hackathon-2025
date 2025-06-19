@@ -4,6 +4,10 @@ import React, { useState, useRef, useEffect } from "react";
 // react-markdown
 import ReactMarkdown from "react-markdown";
 
+// react-icons
+import { FiArrowUp, FiPaperclip, FiGlobe, FiPlus, FiX } from "react-icons/fi";
+
+// utils
 import { formatAddress } from "../../utils/format-address";
 
 /**
@@ -23,6 +27,25 @@ export default function TomasPraefatioChat() {
 
   // Extraer address del caseId (antes del guion)
   const userAddress = caseId.split("-")[0];
+
+  // Hooks y refs para el menú y file input
+  const [showMenu, setShowMenu] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Cerrar menú al hacer click fuera
+  useEffect(() => {
+    if (!showMenu) return;
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showMenu]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -70,6 +93,15 @@ export default function TomasPraefatioChat() {
       ]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Handler para subir archivo
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Aquí puedes manejar el archivo (enviar, mostrar, etc.)
+      alert(`Archivo seleccionado: ${file.name}`);
     }
   };
 
@@ -131,30 +163,85 @@ export default function TomasPraefatioChat() {
           <div ref={messagesEndRef} />
         </div>
       </div>
-      {/* Input flotante */}
+
       <form
         onSubmit={handleSend}
-        className="fixed bottom-0 left-0 right-0 w-full max-w-2xl mx-auto flex items-center gap-4 px-4 py-5 bg-transparent z-20"
+        className="fixed bottom-2 left-0 right-0 w-full max-w-2xl mx-auto z-20"
         style={{ pointerEvents: "auto" }}
       >
-        <div className="flex-1 flex items-center bg-white border border-gray-200 rounded-lg shadow-md px-4 py-2">
+        <div className="flex items-center bg-white border border-gray-200 rounded-lg shadow-md px-2 py-2 gap-2 relative">
+          <div className="relative flex items-center">
+            <button
+              type="button"
+              className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+              onClick={() => setShowMenu((prev) => !prev)}
+              tabIndex={-1}
+            >
+              {showMenu ? <FiX size={22} /> : <FiPlus size={22} />}
+            </button>
+            {showMenu && (
+              <div
+                ref={menuRef}
+                className="absolute left-0 bottom-12 min-w-[200px] bg-white border border-gray-200 rounded-xl shadow-lg py-2 z-30 animate-fade-in flex flex-col gap-1"
+              >
+                <button
+                  type="button"
+                  className="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100 transition-colors gap-2 cursor-pointer"
+                  onClick={() => {
+                    fileInputRef.current?.click();
+                    setShowMenu(false);
+                  }}
+                >
+                  <FiPaperclip size={18} />
+                  Upload a file
+                </button>
+
+                <button
+                  type="button"
+                  className="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100 transition-colors gap-2 cursor-pointer"
+                  onClick={() => {
+                    alert("Funcionalidad de sitio web próximamente");
+                    setShowMenu(false);
+                  }}
+                >
+                  <FiGlobe size={18} />
+                  Website
+                </button>
+              </div>
+            )}
+
+            <input
+              type="file"
+              ref={fileInputRef}
+              style={{ display: "none" }}
+              onChange={handleFileUpload}
+            />
+          </div>
+
           <input
             type="text"
             className="flex-1 bg-transparent border-none outline-none text-base px-2 py-1"
-            placeholder="Escribe tu mensaje..."
+            placeholder="Talk with Tomas..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
             disabled={loading}
             autoFocus
           />
+
+          <button
+            type="submit"
+            className={`w-10 h-10 flex items-center justify-center rounded-lg transition-colors 
+              ${
+                loading || !input.trim()
+                  ? "bg-gray-300 cursor-not-allowed"
+                  : "bg-[#BC694A] hover:bg-[#c98a62] cursor-pointer"
+              }
+            `}
+            disabled={loading || !input.trim()}
+          >
+            <FiArrowUp size={22} className="text-white" />
+          </button>
         </div>
-        <button
-          type="submit"
-          className="px-8 py-3 text-base font-semibold text-white rounded-lg transition-colors cursor-pointer bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400"
-          disabled={loading || !input.trim()}
-        >
-          {loading ? "Enviando..." : "Enviar"}
-        </button>
       </form>
     </div>
   );
