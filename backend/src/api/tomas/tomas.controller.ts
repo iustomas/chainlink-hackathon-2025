@@ -12,6 +12,7 @@ import { validateTalkWithTomasPraefatioRequest } from "./validators/tomas.valida
 
 // llm service
 import { llmServiceManager } from "../../services/llm/index.js";
+import { PROVIDERS, MODELS } from "../../services/llm/constants.js";
 
 // controller
 export const tomasController = {
@@ -35,8 +36,8 @@ export const tomasController = {
       }
 
       try {
-        const PROVIDER = "gemini";
-        const MODEL = "gemini-2.0-flash-exp";
+        const PROVIDER = PROVIDERS.GEMINI;
+        const MODEL = MODELS.GEMINI_2_5_FLASH_PREVIEW_05_20;
 
         const llmResponse = await llmServiceManager.generateText(
           {
