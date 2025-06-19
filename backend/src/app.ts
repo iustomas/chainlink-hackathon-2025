@@ -6,6 +6,7 @@ import { prettyJSON } from "hono/pretty-json";
 
 // routes
 import { healthRoutes } from "./api/health/health.routes.js";
+import { tomasRoutes } from "./api/tomas/tomas.routes.js";
 
 const app = new Hono();
 
@@ -18,5 +19,6 @@ app.use("*", prettyJSON());
 
 // Routes
 app.route("/health", healthRoutes);
+app.route("/tomas", tomasRoutes);
 
 export default app;
