@@ -1,5 +1,8 @@
 // hono
 import { Context } from "hono";
+import { readFileSync } from "fs";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
 
 // types
 import {
@@ -12,7 +15,16 @@ import { validateTalkWithTomasPraefatioRequest } from "./validators/tomas.valida
 
 // llm service
 import { llmServiceManager } from "../../services/llm/index.js";
-import { PROVIDERS, MODELS } from "../../services/llm/constants.js";
+import { PROVIDERS, MODELS } from "../../services/llm/lllm.constants.js";
+
+// read personality file
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const personalityPath = join(
+  __dirname,
+  "../../../agent/memories/personality-tomas-web3.md"
+);
+const personality = readFileSync(personalityPath, "utf-8");
 
 // controller
 export const tomasController = {
@@ -41,10 +53,8 @@ export const tomasController = {
 
         const llmResponse = await llmServiceManager.generateText(
           {
-            prompt: `Usuario: ${body.message}\nCaso ID: ${body.caseId}`,
-            systemPrompt: `Eres Tomas, un asistente legal especializado en derecho web3 y blockchain. 
-          Responde de manera profesional y útil al usuario. 
-          Si no tienes información suficiente, indícalo claramente.`,
+            prompt: `User message: ${body.message}\nCase ID: ${body.caseId}`,
+            systemPrompt: `Your personality is as follows:\n${personality}\nYou are Tomas, a legal assistant specialized in web3 and blockchain law. Always respond to the user in a professional, clear, and helpful manner. If you do not have enough information to answer, state this explicitly.`,
             model: MODEL,
           },
           PROVIDER
