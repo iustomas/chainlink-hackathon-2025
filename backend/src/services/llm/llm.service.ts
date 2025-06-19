@@ -80,12 +80,12 @@ export class LLMServiceManager {
   ): Promise<LLMResponse> {
     const service = this.getService(provider);
 
-    console.debug("Generating text with provider", provider);
-    console.debug("Model", request.model);
+    // console.debug("Generating text with provider", provider);
+    // console.debug("Model", request.model);
 
     const response = await service.generateText(request);
 
-    console.debug("Response", response);
+    // console.debug("Response", response);
 
     return response;
   }
