@@ -78,11 +78,6 @@ export const tomasController = {
             content: body.message,
             roleType: "user" as RoleType,
           },
-          {
-            role: "Tomas",
-            content: llmResponse.content,
-            roleType: "assistant" as RoleType,
-          },
         ];
 
         // Store conversation in ZEP
