@@ -11,6 +11,7 @@ import dotenv from "dotenv";
 import { healthRoutes } from "./api/health/health.routes.js";
 import { tomasRoutes } from "./api/tomas/tomas.routes.js";
 import { fileRoutes } from "./api/file/file.routes.js";
+import { eugenioRoutes } from "./api/eugenio/eugenio.routes.js";
 
 // LLM services
 import { initializeLLMServices } from "./services/llm/llm.init.js";
@@ -34,5 +35,6 @@ app.use("*", prettyJSON());
 app.route("/health", healthRoutes);
 app.route("/tomas", tomasRoutes);
 app.route("/file", fileRoutes);
+app.route("/eugenio", eugenioRoutes);
 
 export default app;

@@ -1,4 +1,7 @@
+// server
 import { serve } from "@hono/node-server";
+
+// app
 import app from "./app.js";
 
 const port = process.env.PORT || 3000;
