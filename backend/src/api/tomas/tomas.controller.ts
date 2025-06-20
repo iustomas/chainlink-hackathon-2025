@@ -1,7 +1,13 @@
 // hono
 import { Context } from "hono";
+
+// fs
 import { readFileSync } from "fs";
+
+// path
 import { join, dirname } from "path";
+
+// url
 import { fileURLToPath } from "url";
 
 // types
@@ -17,10 +23,6 @@ import { validateTalkWithTomasPraefatioRequest } from "./validators/tomas.valida
 import { llmServiceManager } from "../../services/llm/index.js";
 import { PROVIDERS, MODELS } from "../../services/llm/lllm.constants.js";
 
-// zep service
-import { ZepService } from "../../services/zep.service.js";
-import type { RoleType } from "@getzep/zep-cloud/api";
-
 // read personality file
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -34,8 +36,10 @@ const personality = readFileSync(personalityPath, "utf-8");
 export const tomasController = {
   // talk with tomas praefatio endpoint
   talkWithTomasPraefatio: async (c: Context) => {
+    let body: TalkWithTomasRequest | undefined;
+
     try {
-      const body: TalkWithTomasRequest = await c.req.json();
+      body = await c.req.json();
 
       // Validate request
       const validationErrors = validateTalkWithTomasPraefatioRequest(body);
@@ -51,59 +55,42 @@ export const tomasController = {
         );
       }
 
-      try {
-        const PROVIDER = PROVIDERS.ANTHROPIC;
-        const MODEL = MODELS.CLAUDE_SONNET_4_20250514;
+      // At this point, body is guaranteed to be defined and valid
+      const validatedBody = body as TalkWithTomasRequest;
 
-        const llmResponse = await llmServiceManager.generateText(
-          {
-            prompt: `User message: ${body.message}\nCase ID: ${body.caseId}`,
-            systemPrompt: `
-            Your personality is as follows:\n${personality}\n
-            
-            You are Tomas, a legal assistant specialized in web3 and blockchain law. Always respond to the user in a professional, clear, and helpful manner. If you do not have enough information to answer, state this explicitly.`,
-            model: MODEL,
-          },
-          PROVIDER
-        );
+      // Extract user address from caseId (format: 0x...-01)
+      const [userId] = validatedBody.caseId.split("-");
+      const sessionId = validatedBody.caseId;
 
-        // Extract user address from caseId (format: 0x...-01)
-        const [userId] = body.caseId.split("-");
-        const sessionId = body.caseId;
+      // Get business context and build system prompt
+      let systemPrompt = `
+        Your personality is as follows:\n${personality}\n
+        
+        You are Tomas, a legal assistant specialized in web3 and blockchain law. Always respond to the user in a professional, clear, and helpful manner. If you do not have enough information to answer, state this explicitly.`;
 
-        // Prepare ZEP messages
-        const zepMessages = [
-          {
-            role: userId,
-            content: body.message,
-            roleType: "user" as RoleType,
-          },
-        ];
+      // Generate LLM response
+      const PROVIDER = PROVIDERS.GEMINI;
+      const MODEL = MODELS.GEMINI_2_5_FLASH_PREVIEW_05_20;
 
-        // Store conversation in ZEP
-        await ZepService.addMessages(userId, sessionId, zepMessages);
+      const llmResponse = await llmServiceManager.generateText(
+        {
+          prompt: `
+            User message: ${validatedBody.message}          
+          `,
+          systemPrompt,
+          model: MODEL,
+        },
+        PROVIDER
+      );
 
-        const response: TalkWithTomasResponse = {
-          success: true,
-          response: llmResponse.content,
-          caseId: body.caseId,
-          timestamp: new Date().toISOString(),
-        };
+      const response: TalkWithTomasResponse = {
+        success: true,
+        response: llmResponse.content,
+        caseId: validatedBody.caseId,
+        timestamp: new Date().toISOString(),
+      };
 
-        return c.json(response);
-      } catch (llmError) {
-        console.error("LLM service error:", llmError);
-
-        // Fallback response if LLM service fails
-        const response: TalkWithTomasResponse = {
-          success: true,
-          response: `Tomas ha recibido tu mensaje para el caso ${body.caseId}. Este es el inicio de la fase de descubrimiento. (Respuesta de respaldo - servicio LLM no disponible)`,
-          caseId: body.caseId,
-          timestamp: new Date().toISOString(),
-        };
-
-        return c.json(response);
-      }
+      return c.json(response);
     } catch (error) {
       console.error("Error in talkWithTomasPraefatio:", error);
 
@@ -116,6 +103,24 @@ export const tomasController = {
           },
           400
         );
+      }
+
+      // Check if it's an LLM service error
+      if (
+        error instanceof Error &&
+        (error.message?.includes("LLM") ||
+          error.message?.includes("generateText"))
+      ) {
+        const response: TalkWithTomasResponse = {
+          success: true,
+          response: `Tomas has received your message for case ${
+            body?.caseId || "unknown"
+          }. This is the start of the discovery phase. (Fallback response - LLM service not available)`,
+          caseId: body?.caseId || "unknown",
+          timestamp: new Date().toISOString(),
+        };
+
+        return c.json(response);
       }
 
       return c.json(

@@ -1,10 +1,30 @@
 import { TalkWithTomasRequest, ValidationError } from "../types/tomas.types.js";
 
+// validation function to check if body exists
+export const validateRequestBody = (body: any): ValidationError[] => {
+  const errors: ValidationError[] = [];
+
+  if (!body) {
+    errors.push({
+      field: "body",
+      message: "Request body is required",
+    });
+  }
+
+  return errors;
+};
+
 // validation function
 export const validateTalkWithTomasPraefatioRequest = (
   body: any
 ): ValidationError[] => {
   const errors: ValidationError[] = [];
+
+  // First check if body exists
+  const bodyErrors = validateRequestBody(body);
+  if (bodyErrors.length > 0) {
+    return bodyErrors;
+  }
 
   if (!body.caseId) {
     errors.push({

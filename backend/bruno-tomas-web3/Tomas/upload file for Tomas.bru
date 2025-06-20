@@ -1,0 +1,16 @@
+meta {
+  name: upload file for Tomas
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{url}}/tomas/upload-pdf-file
+  body: multipartForm
+  auth: inherit
+}
+
+body:multipart-form {
+  file: @file(/Users/cristian/Desktop/Revista La Herradura vbº JV (dragged).pdf)
+  caseId: 0x6914c5b9ab9b49bCF84f980Ff773Bf2ae6186A6D-01
+}
