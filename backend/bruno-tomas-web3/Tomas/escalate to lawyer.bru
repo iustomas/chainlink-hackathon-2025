@@ -1,0 +1,21 @@
+meta {
+  name: escalate to lawyer
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{url}}/tomas/escalate-to-lawyer
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "caseId": "0x6914c5b9ab9b49bCF84f980Ff773Bf2ae6186A6D-01",
+    "contractAddress": "0x6914c5b9ab9b49bCF84f980Ff773Bf2ae6186A6D",
+    "signature": "saldkfj",
+    "timestamp": 10,
+    "nonce": "1"
+  }
+}

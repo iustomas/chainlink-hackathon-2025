@@ -16,3 +16,18 @@ export interface TalkWithTomasResponse {
   caseId: string;
   timestamp: string;
 }
+
+export interface EscalateToLawyerRequest {
+  caseId: string;
+  contractAddress: string;
+  signature: string;
+  timestamp: number;
+  nonce: string;
+}
+
+export interface EscalateToLawyerResponse {
+  success: boolean;
+  message: string;
+  escalationId?: string;
+  timestamp: string;
+}

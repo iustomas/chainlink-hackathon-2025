@@ -14,14 +14,22 @@ import { fileURLToPath } from "url";
 import {
   TalkWithTomasRequest,
   TalkWithTomasResponse,
+  EscalateToLawyerRequest,
+  EscalateToLawyerResponse,
 } from "./types/tomas.types.js";
 
 // validator input
-import { validateTalkWithTomasPraefatioRequest } from "./validators/tomas.validator.js";
+import {
+  validateTalkWithTomasPraefatioRequest,
+  validateEscalateToLawyerRequest,
+} from "./validators/tomas.validator.js";
 
 // llm service
 import { llmServiceManager } from "../../services/llm/index.js";
 import { PROVIDERS, MODELS } from "../../services/llm/lllm.constants.js";
+
+// contract verification service
+import { contractVerificationService } from "../../services/contract-verification/index.js";
 
 // read personality file
 const __filename = fileURLToPath(import.meta.url);
@@ -34,7 +42,7 @@ const personality = readFileSync(personalityPath, "utf-8");
 
 // controller
 export const tomasController = {
-  // talk with tomas praefatio endpoint
+  // talk with tomas praefatio
   talkWithTomasPraefatio: async (c: Context) => {
     let body: TalkWithTomasRequest | undefined;
 
@@ -121,6 +129,77 @@ export const tomasController = {
         };
 
         return c.json(response);
+      }
+
+      return c.json(
+        {
+          success: false,
+          error: "Internal server error",
+        },
+        500
+      );
+    }
+  },
+
+  // Tomas require help from Eugenio (Our human lawyer)
+  escalateToLawyer: async (c: Context) => {
+    let body: EscalateToLawyerRequest | undefined;
+
+    try {
+      body = await c.req.json();
+
+      // Validate request
+      const validationErrors = validateEscalateToLawyerRequest(body);
+
+      if (validationErrors.length > 0) {
+        return c.json(
+          {
+            success: false,
+            error: "Validation failed",
+            details: validationErrors,
+          },
+          400
+        );
+      }
+
+      // At this point, body is guaranteed to be defined and valid
+      const validatedBody = body as EscalateToLawyerRequest;
+
+      // Verify that the request comes from an authorized contract
+      if (!contractVerificationService.verifyContractCall(validatedBody)) {
+        return c.json(
+          {
+            success: false,
+            error: "Contract verification failed",
+            message: "Unauthorized contract call",
+          },
+          403
+        );
+      }
+
+      // Generate unique escalation ID
+      const escalationId = `ESC-${validatedBody.caseId}-${Date.now()}`;
+
+      const response: EscalateToLawyerResponse = {
+        success: true,
+        message: "TOMAS_REQUIRE_HELP",
+        escalationId,
+        timestamp: new Date().toISOString(),
+      };
+
+      return c.json(response);
+    } catch (error) {
+      console.error("Error in escalateToLawyer:", error);
+
+      // Check if it's a JSON parse error
+      if (error instanceof SyntaxError && error.message.includes("JSON")) {
+        return c.json(
+          {
+            success: false,
+            error: "Invalid JSON: The request body must be valid JSON.",
+          },
+          400
+        );
       }
 
       return c.json(

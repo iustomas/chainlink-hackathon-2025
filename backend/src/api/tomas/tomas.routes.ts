@@ -6,10 +6,13 @@ import { tomasController } from "./tomas.controller.js";
 
 const tomasRoutes = new Hono();
 
-// Talk with tomas praefatio endpoint
+// Talk with tomas praefatio
 tomasRoutes.post(
   "/talk-with-tomas-praefatio",
   tomasController.talkWithTomasPraefatio
 );
+
+// Tomas require help from Eugenio (Our human lawyer)
+tomasRoutes.post("/escalate-to-lawyer", tomasController.escalateToLawyer);
 
 export { tomasRoutes };
