@@ -8,16 +8,20 @@ import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 
 // typechain-types
-import { EscalateToHumanLawyer } from "../typechain-types";
+import {
+  EscalateToHumanLawyer,
+  IFunctionsRouter,
+  MockFunctionsRouter,
+} from "../typechain-types";
 
 describe("EscalateToHumanLawyer", function () {
   let escalator: EscalateToHumanLawyer;
+  let mockRouter: MockFunctionsRouter;
   let owner: SignerWithAddress;
   let user: SignerWithAddress;
 
   // Test configuration
   const testConfig = {
-    router: "0x0000000000000000000000000000000000000000", // Mock router for testing
     donId: "0x0000000000000000000000000000000000000000000000000000000000000000",
     subscriptionId: 0n,
     gasLimit: 300000,
@@ -29,11 +33,18 @@ describe("EscalateToHumanLawyer", function () {
   beforeEach(async function () {
     [owner, user] = await ethers.getSigners();
 
+    // Deploy mock router first
+    const MockFunctionsRouterFactory = await ethers.getContractFactory(
+      "MockFunctionsRouter"
+    );
+    mockRouter = await MockFunctionsRouterFactory.deploy();
+
+    // Deploy escalator with mock router
     const EscalateToHumanLawyerFactory = await ethers.getContractFactory(
       "EscalateToHumanLawyer"
     );
     escalator = (await EscalateToHumanLawyerFactory.deploy(
-      testConfig.router,
+      await mockRouter.getAddress(),
       testConfig.donId,
       testConfig.subscriptionId,
       testConfig.gasLimit,
@@ -95,7 +106,7 @@ describe("EscalateToHumanLawyer", function () {
             400000,
             "0x2222222222222222222222222222222222222222222222222222222222222222"
           )
-      ).to.be.revertedWithCustomError(escalator, "OnlyOwner");
+      ).to.be.revertedWith("Only callable by owner");
     });
 
     it("Should allow owner to update API URL", async function () {
@@ -111,7 +122,7 @@ describe("EscalateToHumanLawyer", function () {
 
       await expect(
         escalator.connect(user).updateApiUrl(newApiUrl)
-      ).to.be.revertedWithCustomError(escalator, "OnlyOwner");
+      ).to.be.revertedWith("Only callable by owner");
     });
 
     it("Should not allow empty API URL", async function () {
@@ -122,31 +133,51 @@ describe("EscalateToHumanLawyer", function () {
   });
 
   describe("Escalation Request", function () {
-    it("Should emit EscalationRequested event", async function () {
+    it("Should emit EscalationRequested event and create request", async function () {
       const caseId = "0x6914c5b9ab9b49bCF84f980Ff773Bf2ae6186A6D-01";
       const signature = "saldkfj";
       const timestamp = 10n;
       const nonce = "1";
 
-      await expect(
-        escalator
-          .connect(user)
-          .requestEscalation(caseId, signature, timestamp, nonce)
-      )
-        .to.emit(escalator, "EscalationRequested")
-        .withArgs(
-          caseId,
-          user.address,
-          signature,
-          timestamp,
-          nonce,
-          await escalator
-            .connect(user)
-            .requestEscalation.staticCall(caseId, signature, timestamp, nonce)
-        );
+      const tx = await escalator
+        .connect(user)
+        .requestEscalation(caseId, signature, timestamp, nonce);
+      const receipt = await tx.wait();
+
+      // Check that the event was emitted
+      expect(receipt?.status).to.equal(1);
+
+      // Get the requestId from the event
+      const event = receipt?.logs.find((log: any) => {
+        try {
+          const parsed = escalator.interface.parseLog(log as any);
+          return parsed?.name === "EscalationRequested";
+        } catch {
+          return false;
+        }
+      });
+
+      expect(event).to.not.be.undefined;
+
+      if (event) {
+        const parsedEvent = escalator.interface.parseLog(event as any);
+        const requestId = parsedEvent?.args[5];
+
+        // Verify the request was stored correctly
+        const request = await escalator.getRequest(requestId);
+        expect(request.caseId).to.equal(caseId);
+        expect(request.contractAddress).to.equal(user.address);
+        expect(request.signature).to.equal(signature);
+        expect(request.timestamp).to.equal(timestamp);
+        expect(request.nonce).to.equal(nonce);
+        expect(request.completed).to.be.false;
+
+        // Verify the mock router recorded the request
+        expect(await mockRouter.hasRequestId(requestId)).to.be.true;
+      }
     });
 
-    it("Should store request details", async function () {
+    it("Should store request details correctly", async function () {
       const caseId = "0x6914c5b9ab9b49bCF84f980Ff773Bf2ae6186A6D-01";
       const signature = "saldkfj";
       const timestamp = 10n;
@@ -202,6 +233,9 @@ describe("EscalateToHumanLawyer", function () {
       // Both transactions should succeed
       expect(receipt1?.status).to.equal(1);
       expect(receipt2?.status).to.equal(1);
+
+      // Verify both requests were recorded by the mock router
+      expect(await mockRouter.getRequestCounter()).to.equal(2);
     });
   });
 
@@ -253,6 +287,44 @@ describe("EscalateToHumanLawyer", function () {
       expect(request.timestamp).to.equal(0n);
       expect(request.nonce).to.equal("");
       expect(request.completed).to.be.false;
+    });
+  });
+
+  describe("Mock Router Integration", function () {
+    it("Should interact correctly with mock router", async function () {
+      const caseId = "mock-test-case";
+      const signature = "mock-signature";
+      const timestamp = 1000n;
+      const nonce = "mock-nonce";
+
+      const initialCounter = await mockRouter.getRequestCounter();
+
+      const tx = await escalator
+        .connect(user)
+        .requestEscalation(caseId, signature, timestamp, nonce);
+      const receipt = await tx.wait();
+
+      // Verify the mock router counter increased
+      expect(await mockRouter.getRequestCounter()).to.equal(
+        initialCounter + 1n
+      );
+      // Get the requestId from the event
+      const event = receipt?.logs.find((log: any) => {
+        try {
+          const parsed = escalator.interface.parseLog(log as any);
+          return parsed?.name === "EscalationRequested";
+        } catch {
+          return false;
+        }
+      });
+
+      if (event) {
+        const parsedEvent = escalator.interface.parseLog(event as any);
+        const requestId = parsedEvent?.args[5];
+
+        // Verify the mock router has the request ID
+        expect(await mockRouter.hasRequestId(requestId)).to.be.true;
+      }
     });
   });
 });

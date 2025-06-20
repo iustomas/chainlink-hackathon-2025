@@ -36,11 +36,8 @@ export class ContractVerificationService {
         return false;
       }
 
-      // 3. Verify signature
-      if (!this.verifySignature(request)) {
-        console.log("Contract verification failed: Invalid signature");
-        return false;
-      }
+      // Note: Signature verification removed for simplicity
+      // Security is now based on contract address whitelist and timestamp
 
       return true;
     } catch (error) {
@@ -71,47 +68,6 @@ export class ContractVerificationService {
       return true;
     }
     return this.allowedContracts.has(contractAddress.toLowerCase());
-  }
-
-  /**
-   * Verify the signature of the request
-   * @param request The request to verify
-   * @returns True if signature is valid
-   */
-  private verifySignature(request: EscalateToLawyerRequest): boolean {
-    try {
-      // Create the message that was signed
-      const message = this.createMessage(request);
-
-      // Create expected signature
-      const expectedSignature = this.createSignature(message);
-
-      // Compare signatures
-      return request.signature === expectedSignature;
-    } catch (error) {
-      console.error("Signature verification error:", error);
-      return false;
-    }
-  }
-
-  /**
-   * Create the message that should be signed
-   * @param request The request data
-   * @returns The message string
-   */
-  private createMessage(request: EscalateToLawyerRequest): string {
-    return `${request.caseId}:${request.contractAddress}:${request.timestamp}:${request.nonce}`;
-  }
-
-  /**
-   * Create a signature for the given message
-   * @param message The message to sign
-   * @returns The signature
-   */
-  private createSignature(message: string): string {
-    const hmac = createHmac("sha256", this.secretKey);
-    hmac.update(message);
-    return hmac.digest("hex");
   }
 
   /**

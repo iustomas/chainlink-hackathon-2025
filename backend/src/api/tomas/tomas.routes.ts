@@ -13,6 +13,9 @@ tomasRoutes.post(
 );
 
 // Tomas require help from Eugenio (Our human lawyer)
-tomasRoutes.post("/escalate-to-lawyer", tomasController.escalateToLawyer);
+tomasRoutes.post(
+  "/escalate-to-human-lawyer",
+  tomasController.escalateToHumanLawyer
+);
 
 export { tomasRoutes };

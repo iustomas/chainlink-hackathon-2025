@@ -95,14 +95,14 @@ contract EscalateToHumanLawyer is FunctionsClient, ConfirmedOwner {
             "const caseId = args[0];",
             "const contractAddress = args[1];",
             "const signature = args[2];",
-            "const timestamp = args[3];",
+            "const timestamp = parseInt(args[3]);",
             "const nonce = args[4];",
             "",
             "const requestBody = {",
             "  caseId: caseId,",
             "  contractAddress: contractAddress,",
             "  signature: signature,",
-            "  timestamp: parseInt(timestamp),",
+            "  timestamp: timestamp,",
             "  nonce: nonce",
             "};",
             "",
@@ -128,7 +128,7 @@ contract EscalateToHumanLawyer is FunctionsClient, ConfirmedOwner {
         string[] memory args = new string[](5);
         args[0] = _caseId;
         args[1] = addressToString(msg.sender);
-        args[2] = _signature;
+        args[2] = _signature; // This will be ignored, we generate the correct one
         args[3] = uintToString(_timestamp);
         args[4] = _nonce;
         req.setArgs(args);

@@ -145,7 +145,7 @@ export const tomasController = {
   },
 
   // Tomas require help from Eugenio (Our human lawyer)
-  escalateToLawyer: async (c: Context) => {
+  escalateToHumanLawyer: async (c: Context) => {
     let body: EscalateToLawyerRequest | undefined;
 
     try {

@@ -120,7 +120,7 @@ class EmailServiceManager {
    */
   private generateEscalationEmailText(data: EscalationEmailData): string {
     return `
-        🚨 I (Tomas) need help
+        🚨 I (Tomas) need help.
 
         Hello Eugenio,
 
