@@ -93,6 +93,14 @@ export const eugenioController = {
         timestamp: new Date().toISOString(),
       };
 
+      console.log("--------------------------------");
+      console.log("Provider: ", PROVIDER);
+      console.log("Model: ", MODEL);
+      console.log("");
+      console.log("System prompt: ", systemPrompt);
+      console.log("prompt: ", validatedBody.message);
+      console.log("response: ", llmResponse.content);
+
       return c.json(response);
     } catch (error) {
       console.error("Error in talkWithTomasPraefatio:", error);

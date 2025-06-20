@@ -9,9 +9,6 @@ import ReactMarkdown from "react-markdown";
 // react-icons
 import { FiArrowUp, FiPaperclip, FiGlobe, FiPlus, FiX } from "react-icons/fi";
 
-/**
- * Tomas Praefatio
- */
 export default function JustTalkWithLLMChat() {
   type Message = { role: "user" | "assistant"; content: string };
 
@@ -138,7 +135,7 @@ export default function JustTalkWithLLMChat() {
           {loading && (
             <div className="flex justify-start">
               <div className="px-5 py-3 rounded-2xl max-w-[70%] text-base shadow-sm border bg-white text-gray-800 border-gray-200 animate-pulse">
-                Tomas está escribiendo...
+                LLM está escribiendo...
               </div>
             </div>
           )}
