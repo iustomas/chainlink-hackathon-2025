@@ -1,8 +1,11 @@
+// nomic foundation
 import "@nomicfoundation/hardhat-ignition";
 import "@nomicfoundation/hardhat-toolbox";
 
+// hardhat
 import { HardhatUserConfig } from "hardhat/config";
 
+// dotenv
 import * as dotenv from "dotenv";
 
 dotenv.config();

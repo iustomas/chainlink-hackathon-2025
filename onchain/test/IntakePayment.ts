@@ -1,4 +1,4 @@
-// chain
+// chai for testing
 import { expect } from "chai";
 
 // ethers from hardhat
