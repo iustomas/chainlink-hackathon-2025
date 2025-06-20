@@ -31,6 +31,9 @@ import { PROVIDERS, MODELS } from "../../services/llm/lllm.constants.js";
 // contract verification service
 import { contractVerificationService } from "../../services/contract-verification/index.js";
 
+// email service
+import { getEmailServiceManager } from "../../services/email/index.js";
+
 // read personality file
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -179,12 +182,31 @@ export const tomasController = {
 
       // Generate unique escalation ID
       const escalationId = `ESC-${validatedBody.caseId}-${Date.now()}`;
+      const timestamp = new Date().toISOString();
+
+      // Send email to Eugenio (Our human lawyer)
+      const emailResult = await getEmailServiceManager().sendEscalationEmail({
+        caseId: validatedBody.caseId,
+        escalationId,
+        timestamp,
+      });
+
+      // Log email result
+      if (emailResult.success) {
+        console.log(
+          `Escalation email sent successfully. Message ID: ${emailResult.messageId}`
+        );
+      } else {
+        console.error(`Failed to send escalation email: ${emailResult.error}`);
+      }
 
       const response: EscalateToLawyerResponse = {
         success: true,
         message: "TOMAS_REQUIRE_HELP",
         escalationId,
-        timestamp: new Date().toISOString(),
+        timestamp,
+        emailSent: emailResult.success,
+        emailMessageId: emailResult.messageId,
       };
 
       return c.json(response);

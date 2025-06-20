@@ -30,4 +30,6 @@ export interface EscalateToLawyerResponse {
   message: string;
   escalationId?: string;
   timestamp: string;
+  emailSent?: boolean;
+  emailMessageId?: string;
 }
