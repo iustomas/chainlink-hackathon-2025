@@ -11,6 +11,8 @@
   "description": "",
   "devDependencies": {
     "@chainlink/contracts": "^0.8.0",
+    "@chainlink/functions-toolkit": "^0.3.2",
+    "@chainlink/hardhat-chainlink": "^0.0.4",
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "@nomicfoundation/hardhat-verify": "^2.0.14",
     "dotenv": "^16.5.0",
