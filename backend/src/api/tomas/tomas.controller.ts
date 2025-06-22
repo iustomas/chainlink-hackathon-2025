@@ -26,7 +26,7 @@ import {
 
 // llm service
 import { llmServiceManager } from "../../services/llm/index.js";
-import { PROVIDERS, MODELS } from "../../services/llm/lllm.constants.js";
+import { PROVIDERS, MODELS } from "../../services/llm/llm.constants.js";
 
 // contract verification service
 import { contractVerificationService } from "../../services/contract-verification/index.js";

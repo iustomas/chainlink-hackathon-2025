@@ -26,7 +26,7 @@ export class GeminiService implements LLMService {
         model: modelName,
         generationConfig: {
           temperature: request.temperature || this.config.temperature || 0.7,
-          maxOutputTokens: request.maxTokens || this.config.maxTokens || 1000,
+          maxOutputTokens: request.maxTokens || this.config.maxTokens || 10000,
         },
       });
 
