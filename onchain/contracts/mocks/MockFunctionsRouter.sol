@@ -18,6 +18,9 @@ contract MockFunctionsRouter is IFunctionsRouter {
     bytes32 public allowListId;
     uint72 public adminFee = 0;
 
+    // Guarda la dirección del cliente para cada requestId
+    mapping(bytes32 => address) public requestClients;
+
     // Events
     event MockRequestSent(
         bytes32 indexed requestId,
@@ -54,6 +57,8 @@ contract MockFunctionsRouter is IFunctionsRouter {
         
         // Store the request ID for testing purposes
         requestIds[requestId] = true;
+        // Guarda la dirección del cliente
+        requestClients[requestId] = msg.sender;
 
         // Emit event for testing
         emit MockRequestSent(
@@ -100,13 +105,9 @@ contract MockFunctionsRouter is IFunctionsRouter {
         bytes memory err
     ) external {
         require(requestIds[requestId], "Request ID does not exist");
-        
-        // Find the client contract that made the request
-        // In a real scenario, this would be tracked by the router
-        // For testing, we'll assume the sender is the client
-        IFunctionsClient client = IFunctionsClient(msg.sender);
-        
-        // Call the handleOracleFulfillment function on the client
+        address clientAddr = requestClients[requestId];
+        require(clientAddr != address(0), "Client address not found");
+        IFunctionsClient client = IFunctionsClient(clientAddr);
         client.handleOracleFulfillment(requestId, response, err);
     }
 
