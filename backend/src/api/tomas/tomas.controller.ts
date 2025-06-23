@@ -149,17 +149,11 @@ export const tomasController = {
     let body: EscalateToLawyerRequest | undefined;
 
     try {
-      // Log: Intentando parsear el body
-      console.log("[escalateToHumanLawyer] Parsing request body...");
       body = await c.req.json();
-      console.log("[escalateToHumanLawyer] Body received:", body);
+      const headers = c.req.header();
 
       // Validate request
       const validationErrors = validateEscalateToLawyerRequest(body);
-      console.log(
-        "[escalateToHumanLawyer] Validation errors:",
-        validationErrors
-      );
 
       if (validationErrors.length > 0) {
         console.warn(
@@ -180,7 +174,9 @@ export const tomasController = {
       const validatedBody = body as EscalateToLawyerRequest;
 
       // Verify that the request comes from an authorized contract
-      if (!contractVerificationService.verifyContractCall(validatedBody)) {
+      if (
+        !contractVerificationService.verifyContractCall(validatedBody, headers)
+      ) {
         return c.json(
           {
             success: false,

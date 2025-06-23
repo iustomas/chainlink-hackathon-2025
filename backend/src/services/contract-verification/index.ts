@@ -19,9 +19,13 @@ export class ContractVerificationService {
   /**
    * Verify that the request comes from the authorized contract
    * @param request The escalation request
+   * @param headers The request headers (Hono headers object)
    * @returns True if verification passes, false otherwise
    */
-  public verifyContractCall(request: EscalateToLawyerRequest): boolean {
+  public verifyContractCall(
+    request: EscalateToLawyerRequest,
+    headers: Record<string, string | string[] | undefined>
+  ): boolean {
     try {
       // 1. Verify timestamp is recent
       if (!this.verifyTimestamp(request.timestamp)) {
@@ -39,9 +43,18 @@ export class ContractVerificationService {
         return false;
       }
 
-      // Note: Signature verification removed for simplicity
-      // Security is now based on contract address whitelist and timestamp
-      // TODO: Add signature verification
+      // 3. Verify the secret key is correct
+      const secretHeader = headers["chainlink-functions-secret"];
+      const secretValue = Array.isArray(secretHeader)
+        ? secretHeader[0]
+        : secretHeader;
+
+      if (secretValue !== this.secretKey) {
+        console.error(
+          "[ContractVerificationService][verifyContractCall] Contract verification failed: Invalid secret key"
+        );
+        return false;
+      }
 
       return true;
     } catch (error) {
@@ -99,9 +112,7 @@ export class ContractVerificationService {
 }
 
 // Create singleton instance
-const secretKey =
-  process.env.CONTRACT_VERIFICATION_SECRET ||
-  "default-secret-key-change-in-production";
+const secretKey = process.env.CHAINLINK_SECRET || "";
 
 export const contractVerificationService = new ContractVerificationService(
   secretKey
