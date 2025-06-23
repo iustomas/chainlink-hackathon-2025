@@ -43,6 +43,13 @@ const personalityPath = join(
 );
 const personality = readFileSync(personalityPath, "utf-8");
 
+// Simple in-memory cache for escalation deduplication
+const escalationCache = new Map<
+  string,
+  { escalationId: string; timestamp: number }
+>();
+const CACHE_EXPIRATION_MS = 5 * 60 * 1000; // 5 minutes
+
 // controller
 export const tomasController = {
   // talk with tomas praefatio
@@ -188,9 +195,49 @@ export const tomasController = {
         );
       }
 
+      // Check for duplicate escalation requests using simple cache
+      const now = Date.now();
+      const cacheKey = `${validatedBody.caseId}-${Math.floor(now / (60 * 1000))}`; // 1-minute window
+
+      // Clean expired entries
+      for (const [key, value] of escalationCache.entries()) {
+        if (now - value.timestamp > CACHE_EXPIRATION_MS) {
+          escalationCache.delete(key);
+        }
+      }
+
+      const existingEscalation = escalationCache.get(cacheKey);
+
+      if (existingEscalation) {
+        console.log(
+          `[escalateToHumanLawyer] Duplicate escalation detected for case ${validatedBody.caseId}, returning existing escalation ID: ${existingEscalation.escalationId}`
+        );
+
+        const response: EscalateToLawyerResponse = {
+          success: true,
+          message: "TOMAS_REQUIRE_HELP",
+          escalationId: existingEscalation.escalationId,
+          timestamp: new Date().toISOString(),
+          emailSent: true, // Email was already sent for this escalation
+          emailMessageId: "duplicate-prevented",
+        };
+
+        return c.json(response);
+      }
+
       // Generate unique escalation ID
       const escalationId = `ESC-${validatedBody.caseId}-${Date.now()}`;
       const timestamp = new Date().toISOString();
+
+      // Register this escalation to prevent duplicates
+      escalationCache.set(cacheKey, {
+        escalationId,
+        timestamp: now,
+      });
+
+      console.log(
+        `[escalateToHumanLawyer] Registered escalation for case ${validatedBody.caseId} with ID ${escalationId}`
+      );
 
       // Send email to Eugenio (Our human lawyer)
       const emailResult = await getEmailServiceManager().sendEscalationEmail({
