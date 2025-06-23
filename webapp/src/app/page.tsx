@@ -3,6 +3,7 @@ import Link from "next/link";
 
 // components
 import Navbar from "@/components/Navbar";
+import HowItWorksSection from "@/components/HowItWorksSection";
 
 export default function Home() {
   return (
@@ -11,12 +12,12 @@ export default function Home() {
       <div
         className="absolute inset-0 h-[100vh] bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: "url(/assets/oleo-1.png)",
+          backgroundImage: "url(/assets/tomas-v0.1.0.png)",
           backgroundPosition: "center 0%",
         }}
       />
       {/* Overlay for opacity */}
-      <div className="absolute inset-0 h-[100vh] bg-black/40" />
+      <div className="absolute inset-0 h-[100vh] bg-black/30" />
 
       <Navbar />
 
@@ -61,6 +62,8 @@ export default function Home() {
           </Link>
         </div>
       </section>
+
+      <HowItWorksSection />
     </main>
   );
 }

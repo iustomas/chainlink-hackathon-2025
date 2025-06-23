@@ -1,4 +1,4 @@
-<img src="./webapp/public/assets/oleo-1.png" alt="new-york-tomas" style="border-radius: 10px">
+<img src="./webapp/public/assets/tomas-v0.1.0.png" alt="new-york-tomas" style="border-radius: 10px">
 
 <br/>
 
