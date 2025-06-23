@@ -55,9 +55,32 @@ export class ContractVerificationService {
    * @param timestamp The timestamp to verify
    * @returns True if timestamp is valid
    */
-  private verifyTimestamp(timestamp: number): boolean {
+  private verifyTimestamp(timestamp: string): boolean {
+    console.log(
+      "[ContractVerificationService][verifyTimestamp] Timestamp received:",
+      timestamp
+    );
     const currentTime = Math.floor(Date.now() / 1000);
-    const diff = Math.abs(currentTime - timestamp);
+    console.log(
+      "[ContractVerificationService][verifyTimestamp] Current time (s):",
+      currentTime
+    );
+    const parsedTimestamp = parseInt(timestamp);
+    if (isNaN(parsedTimestamp)) {
+      console.error(
+        "[ContractVerificationService][verifyTimestamp] Failed to parse timestamp:",
+        timestamp
+      );
+      return false;
+    }
+    const diff = Math.abs(currentTime - parsedTimestamp);
+    console.log(
+      "[ContractVerificationService][verifyTimestamp] Difference (s):",
+      diff,
+      "Max allowed:",
+      this.maxTimestampDiff
+    );
+
     return diff <= this.maxTimestampDiff;
   }
 

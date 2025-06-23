@@ -97,12 +97,8 @@ export function validateEscalateToLawyerRequest(body: any): string[] {
     errors.push("signature is required and must be a string");
   }
 
-  if (!body.timestamp || typeof body.timestamp !== "number") {
-    errors.push("timestamp is required and must be a number");
-  }
-
-  if (!body.nonce || typeof body.nonce !== "string") {
-    errors.push("nonce is required and must be a string");
+  if (!body.timestamp || typeof body.timestamp !== "string") {
+    errors.push("timestamp is required and must be a string");
   }
 
   return errors;

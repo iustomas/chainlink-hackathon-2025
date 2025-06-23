@@ -21,7 +21,7 @@ export interface EscalateToLawyerRequest {
   caseId: string;
   contractAddress: string;
   signature: string;
-  timestamp: number;
+  timestamp: string;
   nonce: string;
 }
 

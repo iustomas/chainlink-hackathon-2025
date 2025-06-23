@@ -6,16 +6,8 @@
 
 # Configuration
 NETWORK=base
-MODULE=IntakePayment
 CHAIN_ID=8453
 DEPLOYMENT_FILE=ignition/deployments/chain-$(CHAIN_ID)/deployed_addresses.json
-
-# Colors for better output
-GREEN=\033[0;32m
-YELLOW=\033[1;33m
-RED=\033[0;31m
-BLUE=\033[0;34m
-NC=\033[0m # No Color
 
 # =============================================================================
 # SETUP & INSTALLATION
@@ -23,20 +15,20 @@ NC=\033[0m # No Color
 
 # Complete project setup (run this first)
 setup:
-	@echo "$(BLUE)🚀 Setting up Chainlink Hackathon 2025 project...$(NC)"
-	@echo "$(YELLOW)📦 Installing dependencies...$(NC)"
+	@echo "Setting up Chainlink Hackathon 2025 project..."
+	@echo "Installing dependencies..."
 	@npm install
-	@echo "$(YELLOW)🔧 Checking Node.js version...$(NC)"
+	@echo "Checking Node.js version..."
 	@node --version
-	@echo "$(YELLOW)📋 Checking npm version...$(NC)"
+	@echo "Checking npm version..."
 	@npm --version
-	@echo "$(GREEN)✅ Setup completed! You can now run: make help$(NC)"
+	@echo "Setup completed! You can now run: make help"
 
 # Install dependencies
 install:
-	@echo "$(BLUE)🔍 Installing dependencies...$(NC)"
+	@echo "Installing dependencies..."
 	@npm install
-	@echo "$(GREEN)✅ Dependencies installed!$(NC)"
+	@echo "Dependencies installed!"
 
 # =============================================================================
 # LOCAL DEVELOPMENT
@@ -44,8 +36,8 @@ install:
 
 # Start local Chainlink Functions testnet
 start-local-functions:
-	@echo "$(BLUE)🚀 Starting local Chainlink Functions testnet...$(NC)"	
-	@echo "$(YELLOW)📡 Starting testnet (this may take a moment)...$(NC)"
+	@echo "Starting local Chainlink Functions testnet..."
+	@echo "Starting testnet (this may take a moment)..."
 	@node -e "import('@chainlink/functions-toolkit').then(m => m.startLocalFunctionsTestnet())"
 
 # =============================================================================
@@ -54,27 +46,21 @@ start-local-functions:
 
 # Compile smart contracts
 compile:
-	@echo "$(BLUE)💻 Compiling smart contracts...$(NC)"
+	@echo "Compiling smart contracts..."
 	@npx hardhat compile
-	@echo "$(GREEN)✅ Compilation completed!$(NC)"
+	@echo "Compilation completed!"
 
 # Clean build artifacts
 clean:
-	@echo "$(BLUE)🧹 Cleaning build artifacts...$(NC)"
+	@echo "Cleaning build artifacts..."
 	@rm -rf build/ artifacts/ cache/ typechain-types/
-	@echo "$(GREEN)✅ Clean completed!$(NC)"
+	@echo "Clean completed!"
 
 # Run tests
 test:
-	@echo "$(BLUE)🧪 Running tests...$(NC)"
+	@echo "Running tests..."
 	@npx hardhat test
-	@echo "$(GREEN)✅ Tests completed!$(NC)"
-
-# Run tests with coverage
-test-coverage:
-	@echo "$(BLUE)🧪 Running tests with coverage...$(NC)"
-	@npx hardhat coverage
-	@echo "$(GREEN)✅ Test coverage completed!$(NC)"
+	@echo "Tests completed!"
 
 # =============================================================================
 # DEPLOYMENT
@@ -82,30 +68,59 @@ test-coverage:
 
 # Deploy with verification (interactive)
 deploy:
-	@echo "$(BLUE)🚀 Starting full deployment & verification process...$(NC)"
-	@echo "$(YELLOW)⚠️  Are you sure you want to deploy to $(NETWORK)? (Yes/No)$(NC)"
-	@read -p "> " confirm; \
+	@echo "Starting full deployment and verification process..."
+
+    # -------- 1. Select contract to deploy ---------
+	@echo "Select the contract to deploy:"
+	@select opt in "IntakePayment" "ConsumerSimpleImproved" "Exit"; do \
+		case $$REPLY in \
+			1) MODULE="IntakePayment"; break;; \
+			2) MODULE="ConsumerSimpleImproved"; break;; \
+			3) echo "Operation cancelled."; exit 1;; \
+		esac; \
+	done; \
+
+    # -------- 2. Confirm deployment ---------
+	echo "Are you sure you want to deploy to $(NETWORK)? (Yes/No)"; \
+	read -p "> " confirm; \
 	if [ "$$confirm" != "Yes" ]; then \
-		echo "$(RED)❌ Deployment cancelled$(NC)"; \
-		exit 1; \
-	fi
-	@npx hardhat ignition deploy ignition/modules/$(MODULE).ts --network $(NETWORK)
-	@echo "$(BLUE)📡 Extracting deployed contract address...$(NC)"
-	@ADDRESS=$$(cat $(DEPLOYMENT_FILE) | jq -r '.["$(MODULE)#$(MODULE)"]'); \
-	if [ -z "$$ADDRESS" ]; then \
-		echo "$(RED)❌ Failed to get contract address$(NC)"; \
+		echo "Deployment cancelled"; \
 		exit 1; \
 	fi; \
-	echo "$(GREEN)✅ Contract deployed at: $$ADDRESS$(NC)"; \
-	echo "$(BLUE)🔍 Verifying smart contract...$(NC)"; \
-	npx hardhat verify --network $(NETWORK) $$ADDRESS "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70"
-	@echo "$(GREEN)🎯 All done!$(NC)"
+
+    # -------- 3. Deploy contract ---------
+	npx hardhat ignition deploy ignition/modules/$$MODULE.ts --network $(NETWORK); \
+
+    # -------- 4. Extract deployed contract address ---------
+	echo "Extracting deployed contract address..."
+	ADDRESS=$$(jq -r --arg module "$$MODULE" '.[$$module + "#" + $$module]' \
+		"$(DEPLOYMENT_FILE)")
+
+	if [[ -z "$$ADDRESS" || "$$ADDRESS" == "null" ]]; then
+		echo "❌ Failed to get contract address"
+		exit 1
+	fi
+	echo "Contract deployed at: $$ADDRESS"
+
+    # -------- 5. Verify contract ---------
+	echo "Contract deployed at: $$ADDRESS"; \
+	echo "Verifying smart contract..."; \
+	npx hardhat verify --network $(NETWORK) $$ADDRESS "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70"; \
+	echo "All done!"
 
 # Deploy without verification (non-interactive)
 deploy-quick:
-	@echo "$(BLUE)🚀 Deploying to $(NETWORK)...$(NC)"
-	@npx hardhat ignition deploy ignition/modules/$(MODULE).ts --network $(NETWORK)
-	@echo "$(GREEN)✅ Deployment completed!$(NC)"
+	@echo "Select the contract to deploy:"
+	@select opt in "IntakePayment" "ConsumerSimpleImproved2" "Exit"; do \
+		case $$REPLY in \
+			1) MODULE="IntakePayment"; break;; \
+			2) MODULE="ConsumerSimpleImproved2"; break;; \
+			3) echo "Operation cancelled."; exit 1;; \
+			*) echo "Invalid option.";; \
+		esac; \
+	done; \
+	npx hardhat ignition deploy ignition/modules/$$MODULE.ts --network $(NETWORK); \
+	echo "Deployment completed!"
 
 # =============================================================================
 # UTILITY COMMANDS
@@ -113,43 +128,43 @@ deploy-quick:
 
 # Show project status
 status:
-	@echo "$(BLUE)📊 Project Status:$(NC)"
-	@echo "$(YELLOW)Node.js version:$(NC)" && node --version
-	@echo "$(YELLOW)npm version:$(NC)" && npm --version
-	@echo "$(YELLOW)Hardhat version:$(NC)" && npx hardhat --version
-	@echo "$(YELLOW)Network:$(NC) $(NETWORK)"
-	@echo "$(YELLOW)Module:$(NC) $(MODULE)"
-	@echo "$(YELLOW)Chain ID:$(NC) $(CHAIN_ID)"
+	@echo "Project Status:"
+	@echo "Node.js version:" && node --version
+	@echo "npm version:" && npm --version
+	@echo "Hardhat version:" && npx hardhat --version
+	@echo "Network: $(NETWORK)"
+	@echo "Module: $(MODULE)"
+	@echo "Chain ID: $(CHAIN_ID)"
 
 # Show help
 help:
-	@echo "$(BLUE)============================================$(NC)"
-	@echo "$(BLUE)Chainlink Hackathon 2025 - Available Commands$(NC)"
-	@echo "$(BLUE)============================================$(NC)"
+	@echo "============================================"
+	@echo "Chainlink Hackathon 2025 - Available Commands"
+	@echo "============================================"
 	@echo ""
-	@echo "$(GREEN)Setup:$(NC)"
+	@echo "Setup:"
 	@echo "  setup                    Complete project setup (run first)"
 	@echo "  install                  Install dependencies"
 	@echo ""
-	@echo "$(GREEN)Local Development:$(NC)"
+	@echo "Local Development:"
 	@echo "  start-local-functions    Start local Chainlink Functions testnet"
 	@echo "  start-local-functions-silent  Start testnet (silent mode)"
 	@echo ""
-	@echo "$(GREEN)Smart Contracts:$(NC)"
+	@echo "Smart Contracts:"
 	@echo "  compile                  Compile smart contracts"
 	@echo "  clean                    Clean build artifacts"
 	@echo "  test                     Run tests"
 	@echo "  test-coverage            Run tests with coverage"
 	@echo ""
-	@echo "$(GREEN)Deployment:$(NC)"
-	@echo "  deploy                   Deploy with verification (interactive)"
-	@echo "  deploy-quick             Deploy without verification"
+	@echo "Deployment:"
+	@echo "  deploy                   Deploy with verification (interactive, choose contract)"
+	@echo "  deploy-quick             Deploy without verification (choose contract)"
 	@echo ""
-	@echo "$(GREEN)Utility:$(NC)"
+	@echo "Utility:"
 	@echo "  status                   Show project status"
 	@echo "  help                     Show this help message"
 	@echo ""
-	@echo "$(YELLOW)Quick Start:$(NC)"
+	@echo "Quick Start:"
 	@echo "  1. make setup"
 	@echo "  2. make compile"
 	@echo "  3. make test"

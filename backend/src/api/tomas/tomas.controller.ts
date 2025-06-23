@@ -149,12 +149,23 @@ export const tomasController = {
     let body: EscalateToLawyerRequest | undefined;
 
     try {
+      // Log: Intentando parsear el body
+      console.log("[escalateToHumanLawyer] Parsing request body...");
       body = await c.req.json();
+      console.log("[escalateToHumanLawyer] Body received:", body);
 
       // Validate request
       const validationErrors = validateEscalateToLawyerRequest(body);
+      console.log(
+        "[escalateToHumanLawyer] Validation errors:",
+        validationErrors
+      );
 
       if (validationErrors.length > 0) {
+        console.warn(
+          "[escalateToHumanLawyer] Validation failed:",
+          validationErrors
+        );
         return c.json(
           {
             success: false,

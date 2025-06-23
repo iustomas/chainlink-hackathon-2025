@@ -1,3 +1,6 @@
 {
-  "IntakePayment#IntakePayment": "0x4508B91EC39770c8457B7c9aB9B60C845B09d3dD"
+  "IntakePayment#IntakePayment": "0x4508B91EC39770c8457B7c9aB9B60C845B09d3dD",
+  "ConsumerSimple#ConsumerSimple": "0xF35E31947e76493A745ddbc3f97b59f62Be85e17",
+  "ConsumerSimpleImproved#ConsumerSimpleImproved": "0x521Ff88c7e78f78Fe001528A7Acd6ACFeCEe6AfE",
+  "ConsumerSimpleImproved2#ConsumerSimpleImproved2": "0x3C914C588d73d485b1aA870cdCa52d3163ad630c"
 }
