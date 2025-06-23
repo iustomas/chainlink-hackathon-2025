@@ -93,10 +93,6 @@ export function validateEscalateToLawyerRequest(body: any): string[] {
     errors.push("contractAddress must be a valid EVM address");
   }
 
-  if (!body.signature || typeof body.signature !== "string") {
-    errors.push("signature is required and must be a string");
-  }
-
   if (!body.timestamp || typeof body.timestamp !== "string") {
     errors.push("timestamp is required and must be a string");
   }

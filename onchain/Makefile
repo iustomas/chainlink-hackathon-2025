@@ -111,10 +111,10 @@ deploy:
 # Deploy without verification (non-interactive)
 deploy-quick:
 	@echo "Select the contract to deploy:"
-	@select opt in "IntakePayment" "ConsumerSimpleImproved2" "Exit"; do \
+	@select opt in "IntakePayment" "ConsumerSimpleImproved3" "Exit"; do \
 		case $$REPLY in \
 			1) MODULE="IntakePayment"; break;; \
-			2) MODULE="ConsumerSimpleImproved2"; break;; \
+			2) MODULE="ConsumerSimpleImproved3"; break;; \
 			3) echo "Operation cancelled."; exit 1;; \
 			*) echo "Invalid option.";; \
 		esac; \
