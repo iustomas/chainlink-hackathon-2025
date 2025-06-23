@@ -111,16 +111,21 @@ deploy:
 # Deploy without verification (non-interactive)
 deploy-quick:
 	@echo "Select the contract to deploy:"
-	@select opt in "IntakePayment" "ConsumerSimpleImproved3" "Exit"; do \
+	@select opt in "IntakePayment" "ConsumerSimpleImproved8" "Exit"; do \
 		case $$REPLY in \
 			1) MODULE="IntakePayment"; break;; \
-			2) MODULE="ConsumerSimpleImproved3"; break;; \
+			2) MODULE="ConsumerSimpleImproved8"; break;; \
 			3) echo "Operation cancelled."; exit 1;; \
 			*) echo "Invalid option.";; \
 		esac; \
 	done; \
 	npx hardhat ignition deploy ignition/modules/$$MODULE.ts --network $(NETWORK); \
 	echo "Deployment completed!"
+
+verify-quick:
+	@echo "Verifying smart contract..."
+	@npx hardhat verify --network base 0x43Ce8aFC7d03b4fBF4F24A36bd66cE1cc34d1063 0xf9b8fc078197181c841c296c876945aaa425b278 0x66756e2d626173652d6d61696e6e65742d310000000000000000000000000000 60 200000 0 1750715443
+	echo "All done!"
 
 # =============================================================================
 # UTILITY COMMANDS
