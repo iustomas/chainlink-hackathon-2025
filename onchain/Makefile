@@ -1,5 +1,5 @@
 # =============================================================================
-# Chainlink Hackathon 2025 - Onchainb Makefile
+# Chainlink Hackathon 2025 - Onchain Makefile
 # =============================================================================
 # This Makefile provides all necessary commands to work with the project
 # during the hackathon presentation and development.

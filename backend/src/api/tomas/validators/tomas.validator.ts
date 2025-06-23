@@ -14,7 +14,6 @@ export const validateRequestBody = (body: any): ValidationError[] => {
   return errors;
 };
 
-// validation function
 export const validateTalkWithTomasPraefatioRequest = (
   body: any
 ): ValidationError[] => {
@@ -91,7 +90,7 @@ export function validateEscalateToLawyerRequest(body: any): string[] {
   if (!body.contractAddress || typeof body.contractAddress !== "string") {
     errors.push("contractAddress is required and must be a string");
   } else if (!/^0x[a-fA-F0-9]{40}$/.test(body.contractAddress)) {
-    errors.push("contractAddress must be a valid Ethereum address");
+    errors.push("contractAddress must be a valid EVM address");
   }
 
   if (!body.signature || typeof body.signature !== "string") {

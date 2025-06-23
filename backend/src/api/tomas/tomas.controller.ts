@@ -174,7 +174,8 @@ export const tomasController = {
           {
             success: false,
             error: "Contract verification failed",
-            message: "Unauthorized contract call",
+            message:
+              "Only the authorized smart contract may access this endpoint",
           },
           403
         );

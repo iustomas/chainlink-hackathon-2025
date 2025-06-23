@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 import "@chainlink/contracts/src/v0.8/functions/dev/v1_0_0/FunctionsClient.sol";
+import "@chainlink/contracts/src/v0.8/functions/dev/v1_0_0/libraries/FunctionsRequest.sol";
 
 contract ConsumerSimple is FunctionsClient {
     using FunctionsRequest for FunctionsRequest.Request;
@@ -25,7 +26,7 @@ contract ConsumerSimple is FunctionsClient {
         gasLimit = _gasLimit;
     }
 
-    function execute(bytes calldata source) external {
+    function execute(string calldata source) external {
         FunctionsRequest.Request memory req;
         req.initializeRequestForInlineJavaScript(string(source));
         lastId = _sendRequest(req.encodeCBOR(), subscriptionId, gasLimit, donId);  
