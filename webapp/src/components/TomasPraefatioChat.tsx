@@ -122,7 +122,7 @@ export default function TomasPraefatioChat() {
 
   return (
     <div
-      className="relative w-full mx-auto flex flex-col h-full font-spectral bg-white rounded-3xl shadow-2xl p-8"
+      className="relative w-full mx-auto flex flex-col h-full font-spectral bg-white p-8"
       style={{ minHeight: "80vh" }}
     >
       {!address ? (

@@ -34,6 +34,9 @@ import { contractVerificationService } from "../../services/contract-verificatio
 // email service
 import { getEmailServiceManager } from "../../services/email/index.js";
 
+// firestore conversation history service
+import { conversationHistoryService } from "../../services/firestore/conversation-history.service.js";
+
 // read personality file
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -97,6 +100,13 @@ export const tomasController = {
           model: MODEL,
         },
         PROVIDER
+      );
+
+      // Save conversation to Firestore history
+      await conversationHistoryService.addConversation(
+        userAddress,
+        validatedBody.message,
+        llmResponse.content
       );
 
       const response: TalkWithTomasResponse = {
