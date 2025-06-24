@@ -58,7 +58,7 @@ async function main() {
     "https://01.functions-gateway.chain.link/",
     "https://02.functions-gateway.chain.link/",
   ];
-  const minutesUntilExpiration = 60;
+  const minutesUntilExpiration = 60 * 24 * 30; // 30 days
 
   const { version } = await secretsManager.uploadEncryptedSecretsToDON({
     encryptedSecretsHexstring: encryptedSecrets,

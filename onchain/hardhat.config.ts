@@ -4,7 +4,6 @@ import "@nomicfoundation/hardhat-toolbox";
 
 // hardhat
 import { HardhatUserConfig } from "hardhat/config";
-import "@chainlink/hardhat-chainlink";
 
 // dotenv
 import * as dotenv from "dotenv";

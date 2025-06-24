@@ -111,11 +111,12 @@ deploy:
 # Deploy without verification (non-interactive)
 deploy-quick:
 	@echo "Select the contract to deploy:"
-	@select opt in "IntakePayment" "ConsumerSimpleImproved8" "Exit"; do \
+	@select opt in "IntakePayment" "ConsumerSimpleImproved9" "ConsumerSimpleWithVRF6" "Exit"; do \
 		case $$REPLY in \
 			1) MODULE="IntakePayment"; break;; \
-			2) MODULE="ConsumerSimpleImproved8"; break;; \
-			3) echo "Operation cancelled."; exit 1;; \
+			2) MODULE="ConsumerSimpleImproved9"; break;; \
+			3) MODULE="ConsumerSimpleWithVRF6"; break;; \
+			4) echo "Operation cancelled."; exit 1;; \
 			*) echo "Invalid option.";; \
 		esac; \
 	done; \
@@ -124,8 +125,13 @@ deploy-quick:
 
 verify-quick:
 	@echo "Verifying smart contract..."
-	@npx hardhat verify --network base 0x43Ce8aFC7d03b4fBF4F24A36bd66cE1cc34d1063 0xf9b8fc078197181c841c296c876945aaa425b278 0x66756e2d626173652d6d61696e6e65742d310000000000000000000000000000 60 200000 0 1750715443
+	@npx hardhat verify --network base 0xf0df2B71194F7adBa89fe47A5E14d07A14DF7261 0xf9b8fc078197181c841c296c876945aaa425b278 0x66756e2d626173652d6d61696e6e65742d310000000000000000000000000000 60 200000 0 1750719836
 	echo "All done!"
+
+# verify-quick:
+# 	@echo "Verifying smart contract..."
+# 	@npx hardhat verify --network base 0x4Ff4540a8B10eDCD6f1A52890A0cc3822667F2Df 0xf9b8fc078197181c841c296c876945aaa425b278 0x66756e2d626173652d6d61696e6e65742d310000000000000000000000000000 60 200000 0xd5D517aBE5cF79B7e95eC98dB0f0277788aFF634 0x00b81b5a830cb0a4009fbd8904de511e28631e62ce5ad231373d3cdad373ccab 102282035841499285745888608454266153999213776268843959916517149319754593222582 0 1750719836
+# 	echo "All done!"
 
 # =============================================================================
 # UTILITY COMMANDS
