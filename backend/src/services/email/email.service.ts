@@ -30,7 +30,7 @@ class EmailServiceManager {
       const { data: emailData, error } = await this.resend.emails.send({
         from: this.config.fromEmail,
         to: [this.config.toEmail],
-        subject: `🚨 I (Tomas) need help - Case ${data.caseId}`,
+        subject: `🚨 I (Tomas) need help - Case ${data.userAddress}`,
         html: this.generateEscalationEmailHTML(data),
         text: this.generateEscalationEmailText(data),
       });
@@ -94,7 +94,7 @@ class EmailServiceManager {
           
           <div class="details">
             <div class="value">
-              <span class="label">Case ID:</span> ${data.caseId}
+              <span class="label">Case ID:</span> ${data.userAddress}
             </div>
             <div class="value">
               <span class="label">Escalation ID:</span> ${data.escalationId}
@@ -127,7 +127,7 @@ class EmailServiceManager {
         I have requested your assistance for a legal case that requires the intervention of a human lawyer.
 
         CASE DETAILS:
-        - Case ID: ${data.caseId}
+        - Case ID: ${data.userAddress}
         - Escalation ID: ${data.escalationId}
         - Date and Time: ${new Date(data.timestamp).toLocaleString("es-ES")}
 

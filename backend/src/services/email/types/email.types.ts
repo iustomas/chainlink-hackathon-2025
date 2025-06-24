@@ -6,7 +6,7 @@ export interface EmailServiceConfig {
 }
 
 export interface EscalationEmailData {
-  caseId: string;
+  userAddress: string;
   escalationId: string;
 
   timestamp: string;

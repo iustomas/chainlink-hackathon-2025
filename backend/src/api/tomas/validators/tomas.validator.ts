@@ -25,10 +25,17 @@ export const validateTalkWithTomasPraefatioRequest = (
     return bodyErrors;
   }
 
-  if (!body.caseId) {
+  if (!body.userAddress) {
     errors.push({
-      field: "caseId",
-      message: "caseId is required",
+      field: "userAddress",
+      message: "userAddress is required",
+    });
+  }
+
+  if (body.userAddress && typeof body.userAddress !== "string") {
+    errors.push({
+      field: "userAddress",
+      message: "userAddress must be a string",
     });
   }
 
@@ -36,13 +43,6 @@ export const validateTalkWithTomasPraefatioRequest = (
     errors.push({
       field: "message",
       message: "message is required",
-    });
-  }
-
-  if (body.caseId && typeof body.caseId !== "string") {
-    errors.push({
-      field: "caseId",
-      message: "caseId must be a string",
     });
   }
 
@@ -61,13 +61,12 @@ export const validateTalkWithTomasPraefatioRequest = (
   }
 
   // Validate caseId format: 0x...-01
-  if (body.caseId && typeof body.caseId === "string") {
-    const caseIdPattern = /^0x[a-fA-F0-9]{40}-\d+$/;
-    if (!caseIdPattern.test(body.caseId)) {
+  if (body.userAddress && typeof body.userAddress === "string") {
+    const caseIdPattern = /^0x[a-fA-F0-9]{40}$/;
+    if (!caseIdPattern.test(body.userAddress)) {
       errors.push({
-        field: "caseId",
-        message:
-          "caseId must follow the format: 0x...-01 (Ethereum address followed by dash and case number)",
+        field: "userAddress",
+        message: "userAddress must follow the format: 0x... (EVM address)",
       });
     }
   }

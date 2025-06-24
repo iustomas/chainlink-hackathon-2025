@@ -76,9 +76,7 @@ export const tomasController = {
       // At this point, body is guaranteed to be defined and valid
       const validatedBody = body as TalkWithTomasRequest;
 
-      // Extract user address from caseId (format: 0x...-01)
-      const [userId] = validatedBody.caseId.split("-");
-      const sessionId = validatedBody.caseId;
+      const userAddress = validatedBody.userAddress;
 
       // Get business context and build system prompt
       let systemPrompt = `
@@ -104,7 +102,7 @@ export const tomasController = {
       const response: TalkWithTomasResponse = {
         success: true,
         response: llmResponse.content,
-        caseId: validatedBody.caseId,
+        userAddress: validatedBody.userAddress,
         timestamp: new Date().toISOString(),
       };
 
@@ -132,9 +130,9 @@ export const tomasController = {
         const response: TalkWithTomasResponse = {
           success: true,
           response: `Tomas has received your message for case ${
-            body?.caseId || "unknown"
+            body?.userAddress || "unknown"
           }. This is the start of the discovery phase. (Fallback response - LLM service not available)`,
-          caseId: body?.caseId || "unknown",
+          userAddress: body?.userAddress || "unknown",
           timestamp: new Date().toISOString(),
         };
 
@@ -197,7 +195,7 @@ export const tomasController = {
 
       // Check for duplicate escalation requests using simple cache
       const now = Date.now();
-      const cacheKey = `${validatedBody.caseId}-${Math.floor(now / (60 * 1000))}`; // 1-minute window
+      const cacheKey = `${validatedBody.userAddress}-${Math.floor(now / (60 * 1000))}`; // 1-minute window
 
       // Clean expired entries
       for (const [key, value] of escalationCache.entries()) {
@@ -210,7 +208,7 @@ export const tomasController = {
 
       if (existingEscalation) {
         console.log(
-          `[escalateToHumanLawyer] Duplicate escalation detected for case ${validatedBody.caseId}, returning existing escalation ID: ${existingEscalation.escalationId}`
+          `[escalateToHumanLawyer] Duplicate escalation detected for case ${validatedBody.userAddress}, returning existing escalation ID: ${existingEscalation.escalationId}`
         );
 
         const response: EscalateToLawyerResponse = {
@@ -226,7 +224,7 @@ export const tomasController = {
       }
 
       // Generate unique escalation ID
-      const escalationId = `ESC-${validatedBody.caseId}-${Date.now()}`;
+      const escalationId = `ESC-${validatedBody.userAddress}-${Date.now()}`;
       const timestamp = new Date().toISOString();
 
       // Register this escalation to prevent duplicates
@@ -236,12 +234,12 @@ export const tomasController = {
       });
 
       console.log(
-        `[escalateToHumanLawyer] Registered escalation for case ${validatedBody.caseId} with ID ${escalationId}`
+        `[escalateToHumanLawyer] Registered escalation for case ${validatedBody.userAddress} with ID ${escalationId}`
       );
 
       // Send email to Eugenio (Our human lawyer)
       const emailResult = await getEmailServiceManager().sendEscalationEmail({
-        caseId: validatedBody.caseId,
+        userAddress: validatedBody.userAddress,
         escalationId,
         timestamp,
       });
