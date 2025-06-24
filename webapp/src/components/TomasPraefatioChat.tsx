@@ -1,3 +1,5 @@
+"use client";
+
 // react
 import React, { useState, useRef, useEffect } from "react";
 
@@ -28,12 +30,12 @@ export default function TomasPraefatioChat() {
   // Extraer address del caseId (antes del guion)
   const userAddress = caseId.split("-")[0];
 
-  // Hooks y refs para el menú y file input
+  // Menu and file input
   const [showMenu, setShowMenu] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Cerrar menú al hacer click fuera
+  // Close menu when clicking outside
   useEffect(() => {
     if (!showMenu) return;
     function handleClickOutside(event: MouseEvent) {
@@ -104,6 +106,12 @@ export default function TomasPraefatioChat() {
       alert(`Archivo seleccionado: ${file.name}`);
     }
   };
+
+  // const color1 = "#BCE3F8"; // Celeste claro
+  // const color2 = "#4CA5E6"; // Azul eléctrico
+  // const color3 = "#E3E4E5"; // Blanco grisáceo
+  // const color4 = "#FCE3D0"; // Naranja pastel muy claro (casi piel)
+  // const color5 = "#38456D"; // Azul oscuro con leve matiz violeta
 
   return (
     <div
