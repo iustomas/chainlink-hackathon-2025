@@ -1,15 +1,6 @@
 // hono
 import { Context } from "hono";
 
-// fs
-import { readFileSync } from "fs";
-
-// path
-import { join, dirname } from "path";
-
-// url
-import { fileURLToPath } from "url";
-
 // types
 import {
   TalkWithTomasRequest,
@@ -37,14 +28,8 @@ import { getEmailServiceManager } from "../../services/email/index.js";
 // firestore conversation history service
 import { conversationHistoryService } from "../../services/firestore/conversation-history.service.js";
 
-// read personality file
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const personalityPath = join(
-  __dirname,
-  "../../../agent/memories/personality-tomas-web3.md"
-);
-const personality = readFileSync(personalityPath, "utf-8");
+// prompt builder service
+import { promptBuilderService } from "../../services/prompt-builder/index.js";
 
 // Simple in-memory cache for escalation deduplication
 const escalationCache = new Map<
@@ -81,11 +66,8 @@ export const tomasController = {
 
       const userAddress = validatedBody.userAddress;
 
-      // Get business context and build system prompt
-      let systemPrompt = `
-        Your personality is as follows:\n${personality}\n
-        
-        You are Tomas, a legal assistant specialized in web3 and blockchain law. Always respond to the user in a professional, clear, and helpful manner. If you do not have enough information to answer, state this explicitly.`;
+      // Build system prompt using the prompt builder service
+      const systemPrompt = promptBuilderService.buildTomasPraefatioPrompt();
 
       // Generate LLM response
       const PROVIDER = PROVIDERS.GEMINI;
@@ -93,9 +75,7 @@ export const tomasController = {
 
       const llmResponse = await llmServiceManager.generateText(
         {
-          prompt: `
-            User message: ${validatedBody.message}          
-          `,
+          prompt: validatedBody.message,
           systemPrompt,
           model: MODEL,
         },
