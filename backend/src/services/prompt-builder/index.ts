@@ -124,6 +124,18 @@ export class PromptBuilderService {
       prompt += `Additional context:\n${config.customContext}\n\n`;
     }
 
+    // Add relevant questions for Praefatio if specified
+    if (config.includeRelevantQuestions) {  
+      const relevantQuestionsPath = join(
+        agentBasePath,
+        "memories/relevant-questions-praefatio.md"
+      );
+      const relevantQuestions = this.readFileSafely(relevantQuestionsPath);
+      if (relevantQuestions) {
+        prompt += `Relevant questions for Praefatio:\n${relevantQuestions}\n\n`;
+      }
+    }
+
     return prompt.trim();
   }
 
@@ -139,6 +151,7 @@ export class PromptBuilderService {
       // includeArtifacts: true,
       // includeProposals: true,
       includeSystemPrompt: true,
+      includeRelevantQuestions: true,
     });
   }
 
