@@ -30,7 +30,7 @@ export default function Sidebar() {
     <aside
       className={`${
         collapsed ? "w-20" : "w-[250px]"
-      } h-full min-h-screen bg-[#FBFBF9] flex flex-col justify-between border-r border-gray-300 transition-all duration-200`}
+      } h-full min-h-screen bg-[#FBFBF9] flex flex-col justify-between border-r border-gray-300 transition-all duration-200 flex-shrink-0`}
     >
       <div>
         <div
