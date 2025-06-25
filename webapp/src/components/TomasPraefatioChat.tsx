@@ -3,9 +3,6 @@
 // react
 import React, { useState, useRef, useEffect } from "react";
 
-// react-icons
-import { FiArrowUp, FiPaperclip, FiGlobe, FiPlus, FiX } from "react-icons/fi";
-
 // utils
 import { formatAddress } from "../../utils/format-address";
 
@@ -19,6 +16,7 @@ import { modal } from "../../context";
 import TypeWriter from "./TypeWriter";
 import RecommendedToStart from "./RecommendedToStart";
 import RecommendedDocuments from "./RecommendedDocuments";
+import { LuPaperclip, LuLayers } from "react-icons/lu";
 
 /**
  * Tomas Praefatio
@@ -37,7 +35,6 @@ export default function TomasPraefatioChat() {
 
   // Menu and file input
   const [showMenu, setShowMenu] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Close menu when clicking outside
@@ -109,20 +106,6 @@ export default function TomasPraefatioChat() {
     }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Aquí puedes manejar el archivo (enviar, mostrar, etc.)
-      alert(`Archivo seleccionado: ${file.name}`);
-    }
-  };
-
-  // const color1 = "#BCE3F8"; // Celeste claro
-  // const color2 = "#4CA5E6"; // Azul eléctrico
-  // const color3 = "#E3E4E5"; // Blanco grisáceo
-  // const color4 = "#FCE3D0"; // Naranja pastel muy claro (casi piel)
-  // const color5 = "#38456D"; // Azul oscuro con leve matiz violeta
-
   return (
     <div className="relative w-full h-full font-spectral bg-white flex flex-col">
       {/* Header section */}
@@ -136,8 +119,68 @@ export default function TomasPraefatioChat() {
         </div>
       </div>
 
-      {/* Main content */}
-      <div className="flex-1 p-6">
+      <div className="flex-1 px-[40px]">
+        {/* Input area */}
+        <div className="flex-shrink-0 py-[20px] mb-[40px]">
+          <div className="w-full mx-auto bg-[#FBFBF9] rounded-xl shadow p-6 flex flex-col items-center">
+            <form onSubmit={handleSend} className="w-full flex flex-col gap-4">
+              <div className="relative w-full">
+                <textarea
+                  className="w-full resize-none rounded-2xl py-6 text-md focus:outline-none border-0 shadow-none bg-transparent"
+                  placeholder="Ask Tomas anything..."
+                  rows={4}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  disabled={loading}
+                  style={{ minHeight: "64px" }}
+                />
+
+                <button
+                  type="submit"
+                  className="absolute bottom-2 right-2 bg-[#38456D] text-white px-6 py-3 rounded-xl text-lg font-semibold hover:bg-[#2c3552] transition shadow-md"
+                  disabled={loading || !input.trim()}
+                >
+                  <h1 className="text-lg font-semibold">Talk with Tomas</h1>
+                </button>
+              </div>
+
+              <div className="flex flex-col md:flex-row gap-4 w-full mt-2">
+                <button
+                  type="button"
+                  className="flex-1 bg-white rounded-xl py-5 px-6 text-left flex items-center justify-between shadow-sm hover:bg-gray-50 transition cursor-pointer group"
+                >
+                  <div className="flex flex-col">
+                    <span className="text-base font-semibold text-gray-900">
+                      Upload files
+                    </span>
+
+                    <span className="text-sm text-gray-500">
+                      Choose files from your computer or a Vault project
+                    </span>
+                  </div>
+                  <LuPaperclip className="text-2xl text-gray-400 group-hover:text-gray-700 ml-4" />
+                </button>
+
+                <button
+                  type="button"
+                  className="flex-1 bg-white rounded-xl py-5 px-6 text-left flex items-center justify-between shadow-sm hover:bg-gray-50 transition cursor-pointer group"
+                >
+                  <div className="flex flex-col">
+                    <span className="text-base font-semibold text-gray-900">
+                      Choose knowledge source
+                    </span>
+
+                    <span className="text-sm text-gray-500">
+                      CFTC, MiCA, Fintech Law, and more
+                    </span>
+                  </div>
+                  <LuLayers className="text-2xl text-gray-400 group-hover:text-gray-700 ml-4" />
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
         {/* Recommended to start section */}
         <RecommendedToStart />
 
@@ -163,7 +206,6 @@ export default function TomasPraefatioChat() {
           <div
             ref={messagesContainerRef}
             className="flex-1 overflow-y-auto px-4 pt-4 pb-2"
-            style={{ minHeight: 0 }}
           >
             <div className="w-full max-w-4xl mx-auto">
               {messages.map((msg, idx) => (
@@ -224,79 +266,6 @@ export default function TomasPraefatioChat() {
 
               <div ref={messagesEndRef} />
             </div>
-          </div>
-
-          {/* Fixed input area at bottom */}
-          <div className="flex-shrink-0 p-4 border-t border-gray-100 bg-white">
-            <form onSubmit={handleSend} className="w-full max-w-4xl mx-auto">
-              <div className="flex items-center bg-white border border-gray-200 rounded-lg shadow-md px-3 py-2 gap-2 relative">
-                <div className="relative flex items-center">
-                  <button
-                    type="button"
-                    className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-                    onClick={() => setShowMenu((prev) => !prev)}
-                    tabIndex={-1}
-                  >
-                    {showMenu ? <FiX size={22} /> : <FiPlus size={22} />}
-                  </button>
-
-                  {showMenu && (
-                    <div
-                      ref={menuRef}
-                      className="absolute left-0 bottom-12 min-w-[200px] bg-white border border-gray-200 rounded-xl shadow-lg py-2 z-30 animate-fade-in flex flex-col gap-1"
-                    >
-                      <button
-                        type="button"
-                        className="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100 transition-colors gap-2 cursor-pointer"
-                        onClick={() => {
-                          fileInputRef.current?.click();
-                          setShowMenu(false);
-                        }}
-                      >
-                        <FiPaperclip size={18} />
-                        Upload a file
-                      </button>
-
-                      <button
-                        type="button"
-                        className="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100 transition-colors gap-2 cursor-pointer"
-                        onClick={() => {
-                          alert("Funcionalidad de sitio web próximamente");
-                          setShowMenu(false);
-                        }}
-                      >
-                        <FiGlobe size={18} />
-                        Website
-                      </button>
-                    </div>
-                  )}
-
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    style={{ display: "none" }}
-                    onChange={handleFileUpload}
-                  />
-                </div>
-
-                <input
-                  type="text"
-                  className="flex-1 bg-transparent border-none outline-none text-base px-3 py-2"
-                  placeholder="Talk with Tomas..."
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  disabled={loading}
-                  style={{ minWidth: 0 }}
-                />
-                <button
-                  type="submit"
-                  className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#38456D] text-white hover:bg-[#4CA5E6] transition-colors"
-                  disabled={loading || !input.trim()}
-                >
-                  <FiArrowUp size={22} />
-                </button>
-              </div>
-            </form>
           </div>
         </>
       )}

@@ -9,6 +9,7 @@ export default function RecommendedDocuments() {
         <h2 className="text-xl font-bold text-gray-800">
           Key documents to draft
         </h2>
+
         <span className="text-[#38456D] text-sm font-semibold cursor-pointer">
           See all &gt;
         </span>
