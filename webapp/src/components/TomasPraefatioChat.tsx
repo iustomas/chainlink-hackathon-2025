@@ -16,8 +16,10 @@ import { modal } from "../../context";
 import TypeWriter from "./TypeWriter";
 import RecommendedToStart from "./RecommendedToStart";
 import RecommendedDocuments from "./RecommendedDocuments";
-import { LuPaperclip, LuLayers } from "react-icons/lu";
 import TomasIsThinking from "./TomasIsThinking";
+
+// icons
+import { LuPaperclip, LuLayers } from "react-icons/lu";
 
 /**
  * Tomas Praefatio
@@ -29,9 +31,8 @@ export default function TomasPraefatioChat() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Nuevo estado para saber si el usuario ya chateó
   const [hasChatted, setHasChatted] = useState(false);
-  // Estado para controlar la animación de transición
+
   const [showChat, setShowChat] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -69,6 +70,17 @@ export default function TomasPraefatioChat() {
       setShowChat(false);
     }
   }, [hasChatted]);
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Simula un pequeño delay para mostrar el estado de carga
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [address]);
 
   const handleConnect = () => {
     if (modal) {
@@ -123,7 +135,14 @@ export default function TomasPraefatioChat() {
     }
   };
 
-  return !address ? (
+  return isLoading ? (
+    <div className="flex flex-col items-center justify-center h-screen w-full text-gray-500 text-lg p-4 bg-white">
+      <div className="flex flex-col items-center">
+        <span className="text-2xl font-bold mb-4">Checking wallet...</span>
+        <span className="loader-tomas inline-block w-8 h-8 border-2 border-gray-400 rounded-full animate-spin"></span>
+      </div>
+    </div>
+  ) : !address ? (
     <div className="flex flex-col items-center justify-center h-screen w-full text-gray-500 text-lg p-4 bg-white">
       <h1 className="text-2xl font-bold">
         Please connect your wallet to start chatting with Tomas.
@@ -204,7 +223,7 @@ export default function TomasPraefatioChat() {
                       }}
                     >
                       {msg.role === "assistant" ? (
-                        <TypeWriter text={msg.content} speed={20} />
+                        <TypeWriter text={msg.content} speed={10} />
                       ) : (
                         msg.content
                       )}

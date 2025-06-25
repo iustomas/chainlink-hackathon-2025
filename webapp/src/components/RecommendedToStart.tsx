@@ -3,7 +3,7 @@ import { LuFileType } from "react-icons/lu";
 
 export default function RecommendedToStart() {
   return (
-    <div className="mb-10">
+    <div className="mb-10 transition-opacity duration-300 opacity-60 hover:opacity-100">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold text-gray-800">

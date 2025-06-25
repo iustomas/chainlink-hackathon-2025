@@ -69,8 +69,29 @@ export const tomasController = {
 
       const userAddress = validatedBody.userAddress;
 
+      // Get conversation history
+      const conversationHistory =
+        await conversationHistoryService.getConversationHistory(userAddress);
+
+      const messageWithPreviousConversation = `
+        User message: ${validatedBody.message}
+        \n\nPrevious conversation:\n${conversationHistory
+          .map((entry) => {
+            const facts =
+              entry.caseFacts && entry.caseFacts.length > 0
+                ? `Case facts:\n- ${entry.caseFacts.join("\n- ")}`
+                : "";
+            return `User message: ${entry.userMessage}\nTomas response: ${entry.agentResponse}${facts ? `\n${facts}` : ""}`;
+          })
+          .join("\n\n")}`;
+
       // Build system prompt using the prompt builder service
       const systemPrompt = promptBuilderService.buildTomasPraefatioPrompt();
+
+      console.log(
+        "messageWithPreviousConversation",
+        messageWithPreviousConversation
+      );
 
       // Generate LLM response
       const PROVIDER = PROVIDERS.GEMINI;
@@ -78,8 +99,8 @@ export const tomasController = {
 
       const llmResponse = await llmServiceManager.generateText(
         {
-          prompt: validatedBody.message,
-          systemPrompt,
+          prompt: messageWithPreviousConversation,
+          systemPrompt: systemPrompt,
           model: MODEL,
         },
         PROVIDER
