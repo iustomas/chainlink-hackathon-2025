@@ -17,6 +17,7 @@ import TypeWriter from "./TypeWriter";
 import RecommendedToStart from "./RecommendedToStart";
 import RecommendedDocuments from "./RecommendedDocuments";
 import { LuPaperclip, LuLayers } from "react-icons/lu";
+import TomasIsThinking from "./TomasIsThinking";
 
 /**
  * Tomas Praefatio
@@ -27,6 +28,11 @@ export default function TomasPraefatioChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Nuevo estado para saber si el usuario ya chateó
+  const [hasChatted, setHasChatted] = useState(false);
+  // Estado para controlar la animación de transición
+  const [showChat, setShowChat] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -55,6 +61,15 @@ export default function TomasPraefatioChat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  useEffect(() => {
+    if (hasChatted) {
+      const timeout = setTimeout(() => setShowChat(true), 200);
+      return () => clearTimeout(timeout);
+    } else {
+      setShowChat(false);
+    }
+  }, [hasChatted]);
+
   const handleConnect = () => {
     if (modal) {
       modal.open();
@@ -68,6 +83,8 @@ export default function TomasPraefatioChat() {
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setLoading(true);
+    // Marcar que el usuario ya chateó
+    if (!hasChatted) setHasChatted(true);
 
     try {
       const res = await fetch(
@@ -110,102 +127,38 @@ export default function TomasPraefatioChat() {
     <div className="relative w-full h-full font-spectral bg-white flex flex-col">
       {/* Header section */}
       <div className="flex-shrink-0 px-4 pt-4 pb-2 border-b border-gray-300 bg-white">
-        <div className="w-full pl-[20px]">
-          <h2 className="text-md text-gray-600 mb-1">Assistant /</h2>
-          {/* TODO: change to a dynamic title */}
-          <h1 className="text-lg text-black mb-3">
-            Proyecto de Desci para pelirrojas
-          </h1>
-        </div>
-      </div>
-
-      <div className="flex-1 px-[40px]">
-        {/* Input area */}
-        <div className="flex-shrink-0 py-[20px] mb-[40px]">
-          <div className="w-full mx-auto bg-[#FBFBF9] rounded-xl shadow p-6 flex flex-col items-center">
-            <form onSubmit={handleSend} className="w-full flex flex-col gap-4">
-              <div className="relative w-full">
-                <textarea
-                  className="w-full resize-none rounded-2xl py-6 text-md focus:outline-none border-0 shadow-none bg-transparent"
-                  placeholder="Ask Tomas anything..."
-                  rows={4}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  disabled={loading}
-                  style={{ minHeight: "64px" }}
-                />
-
-                <button
-                  type="submit"
-                  className="absolute bottom-2 right-2 bg-[#38456D] text-white px-6 py-3 rounded-xl text-lg font-semibold hover:bg-[#2c3552] transition shadow-md"
-                  disabled={loading || !input.trim()}
-                >
-                  <h1 className="text-lg font-semibold">Talk with Tomas</h1>
-                </button>
-              </div>
-
-              <div className="flex flex-col md:flex-row gap-4 w-full mt-2">
-                <button
-                  type="button"
-                  className="flex-1 bg-white rounded-xl py-5 px-6 text-left flex items-center justify-between shadow-sm hover:bg-gray-50 transition cursor-pointer group"
-                >
-                  <div className="flex flex-col">
-                    <span className="text-base font-semibold text-gray-900">
-                      Upload files
-                    </span>
-
-                    <span className="text-sm text-gray-500">
-                      Choose files from your computer or a Vault project
-                    </span>
-                  </div>
-                  <LuPaperclip className="text-2xl text-gray-400 group-hover:text-gray-700 ml-4" />
-                </button>
-
-                <button
-                  type="button"
-                  className="flex-1 bg-white rounded-xl py-5 px-6 text-left flex items-center justify-between shadow-sm hover:bg-gray-50 transition cursor-pointer group"
-                >
-                  <div className="flex flex-col">
-                    <span className="text-base font-semibold text-gray-900">
-                      Choose knowledge source
-                    </span>
-
-                    <span className="text-sm text-gray-500">
-                      CFTC, MiCA, Fintech Law, and more
-                    </span>
-                  </div>
-                  <LuLayers className="text-2xl text-gray-400 group-hover:text-gray-700 ml-4" />
-                </button>
-              </div>
-            </form>
+        <div className="w-full pl-[20px] flex items-center justify-between">
+          <div>
+            <h2 className="text-md text-gray-600 mb-1">Assistant /</h2>
+            {/* TODO: change to a dynamic title */}
+            {/* <h1 className="text-lg text-black mb-3">
+              Proyecto de Desci para pelirrojas
+            </h1> */}
           </div>
+
+          {address && (
+            <div className="flex items-center space-x-2 pr-2">
+              <span
+                className="px-4 py-1.5 rounded-[10px] font-semibold border border-black text-black bg-white cursor-default select-text"
+                style={{ fontSize: "14px", lineHeight: "20px" }}
+              >
+                {formatAddress(address as string)}
+              </span>
+            </div>
+          )}
         </div>
-
-        {/* Recommended to start section */}
-        <RecommendedToStart />
-
-        {/* Documents section */}
-        <RecommendedDocuments />
       </div>
 
-      {!address ? (
-        <div className="flex flex-col items-center justify-center h-full w-full text-gray-500 text-lg p-4">
-          Please connect your wallet to start chatting with Tomas.
-          <button
-            className="bg-[#BC694A] text-white px-4 py-2 rounded-lg mt-4"
-            onClick={() => {
-              handleConnect();
-            }}
-          >
-            Connect Wallet
-          </button>
-        </div>
-      ) : (
-        <>
-          {/* Messages area with scroll */}
+      <div className="flex-1 px-[40px] flex flex-col">
+        {showChat && (
           <div
             ref={messagesContainerRef}
-            className="flex-1 overflow-y-auto px-4 pt-4 pb-2"
+            className="flex-1 overflow-y-auto px-4 pt-4 pb-2 transition-all duration-500 ease-in-out opacity-100 translate-y-0"
+            style={{
+              transitionProperty: "opacity, transform",
+              opacity: showChat ? 1 : 0,
+              transform: showChat ? "translateY(0)" : "translateY(20px)",
+            }}
           >
             <div className="w-full max-w-4xl mx-auto">
               {messages.map((msg, idx) => (
@@ -235,17 +188,6 @@ export default function TomasPraefatioChat() {
                         boxShadow: "none",
                       }}
                     >
-                      {msg.role === "user" && (
-                        <div className="flex items-center mb-2">
-                          <span
-                            className="text-xs font-semibold px-3 py-1 rounded-[10px]"
-                            style={{ background: "#FF9800", color: "#000" }}
-                          >
-                            {address ? formatAddress(address) : ""}
-                          </span>
-                        </div>
-                      )}
-
                       {msg.role === "assistant" ? (
                         <TypeWriter text={msg.content} speed={20} />
                       ) : (
@@ -256,19 +198,160 @@ export default function TomasPraefatioChat() {
                 </div>
               ))}
 
-              {loading && (
-                <div className="flex justify-start">
-                  <div className="px-5 py-3 rounded-2xl max-w-[70%] text-base bg-white text-gray-800">
-                    Tomas is thinking...
-                  </div>
-                </div>
-              )}
+              {/* Loading state */}
+              {loading && <TomasIsThinking />}
 
               <div ref={messagesEndRef} />
             </div>
           </div>
-        </>
+        )}
+
+        <div
+          className={`flex-shrink-0 py-[20px] mb-[40px] mt-auto transition-all duration-500 ease-in-out ${
+            hasChatted
+              ? "opacity-100 translate-y-0"
+              : "opacity-100 translate-y-0"
+          }`}
+          style={{
+            transitionProperty: "opacity, transform",
+            opacity: 1,
+            transform: "translateY(0)",
+          }}
+        >
+          <div
+            className={`mx-auto bg-[#FBFBF9] rounded-xl shadow p-6 flex flex-col items-center transition-all duration-500 ease-in-out ${
+              hasChatted ? "w-full max-w-4xl" : "w-full"
+            }`}
+          >
+            <form onSubmit={handleSend} className="w-full flex flex-col gap-4">
+              <div className="relative w-full">
+                <textarea
+                  className="w-full resize-none rounded-2xl py-6 text-md focus:outline-none border-0 shadow-none bg-transparent"
+                  placeholder="Ask Tomas anything..."
+                  rows={4}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  disabled={loading}
+                  style={{ minHeight: "64px" }}
+                  onKeyDown={(e) => {
+                    if (
+                      e.key === "Enter" &&
+                      !e.shiftKey &&
+                      !e.ctrlKey &&
+                      !e.metaKey
+                    ) {
+                      e.preventDefault();
+                      if (!loading && input.trim()) {
+                        handleSend(e as unknown as React.FormEvent);
+                      }
+                    } else if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                      e.preventDefault();
+                      if (!loading && input.trim()) {
+                        handleSend(e as unknown as React.FormEvent);
+                      }
+                    }
+                  }}
+                />
+
+                <button
+                  type="submit"
+                  className="absolute bottom-2 right-2 bg-black text-white px-6 py-3 rounded-xl text-lg font-semibold hover:bg-[#2c3552] transition shadow-md cursor-pointer"
+                  disabled={loading || !input.trim()}
+                >
+                  <h1 className="text-lg font-semibold">Talk Tomas</h1>
+                </button>
+              </div>
+
+              {!hasChatted && (
+                <div
+                  className="flex flex-col md:flex-row gap-4 w-full mt-2 transition-all duration-500 ease-in-out opacity-100 translate-y-0"
+                  style={{
+                    transitionProperty: "opacity, transform",
+                    opacity: !hasChatted ? 1 : 0,
+                    transform: !hasChatted
+                      ? "translateY(0)"
+                      : "translateY(20px)",
+                  }}
+                >
+                  <button
+                    type="button"
+                    className="flex-1 bg-white rounded-xl py-5 px-6 text-left flex items-center justify-between shadow-sm hover:bg-gray-50 transition cursor-pointer group"
+                  >
+                    <div className="flex flex-col">
+                      <span className="text-base font-semibold text-gray-900">
+                        Upload files
+                      </span>
+
+                      <span className="text-sm text-gray-500">
+                        Choose files from your computer or a Vault project
+                      </span>
+                    </div>
+                    <LuPaperclip className="text-2xl text-gray-400 group-hover:text-gray-700 ml-4" />
+                  </button>
+
+                  <button
+                    type="button"
+                    className="flex-1 bg-white rounded-xl py-5 px-6 text-left flex items-center justify-between shadow-sm hover:bg-gray-50 transition cursor-pointer group"
+                  >
+                    <div className="flex flex-col">
+                      <span className="text-base font-semibold text-gray-900">
+                        Choose knowledge source
+                      </span>
+
+                      <span className="text-sm text-gray-500">
+                        CFTC, MiCA, Fintech Law, and more
+                      </span>
+                    </div>
+                    <LuLayers className="text-2xl text-gray-400 group-hover:text-gray-700 ml-4" />
+                  </button>
+                </div>
+              )}
+            </form>
+          </div>
+        </div>
+
+        {!hasChatted && (
+          <div
+            className="transition-all duration-500 ease-in-out opacity-100 translate-y-0"
+            style={{
+              transitionProperty: "opacity, transform",
+              opacity: !hasChatted ? 1 : 0,
+              transform: !hasChatted ? "translateY(0)" : "translateY(20px)",
+            }}
+          >
+            <RecommendedToStart />
+            <RecommendedDocuments />
+          </div>
+        )}
+      </div>
+
+      {!address && (
+        <div className="flex flex-col items-center justify-center h-full w-full text-gray-500 text-lg p-4">
+          Please connect your wallet to start chatting with Tomas.
+          <button
+            className="bg-[#BC694A] text-white px-4 py-2 rounded-lg mt-4"
+            onClick={() => {
+              handleConnect();
+            }}
+          >
+            Connect Wallet
+          </button>
+        </div>
       )}
+
+      {/* Loader Tomas Spinner CSS */}
+      <style jsx global>{`
+        .loader-tomas {
+          border-radius: 50%;
+          border-top-color: #38456d;
+          animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+      `}</style>
     </div>
   );
 }
