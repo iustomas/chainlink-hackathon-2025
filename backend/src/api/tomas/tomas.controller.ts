@@ -31,6 +31,9 @@ import { conversationHistoryService } from "../../services/firestore/conversatio
 // prompt builder service
 import { promptBuilderService } from "../../services/prompt-builder/index.js";
 
+// json extractor service
+import { jsonExtractorService } from "../../services/json-extractor/index.js";
+
 // Simple in-memory cache for escalation deduplication
 const escalationCache = new Map<
   string,
@@ -82,16 +85,22 @@ export const tomasController = {
         PROVIDER
       );
 
+      // Extract Praefatio JSON from LLM response
+      const jsonExtractionResult = jsonExtractorService.extractPraefatioJson(
+        llmResponse.content
+      );
+
       // Save conversation to Firestore history
-      await conversationHistoryService.addConversation(
+      await conversationHistoryService.addConversationAndExtractedFacts(
         userAddress,
         validatedBody.message,
-        llmResponse.content
+        jsonExtractionResult.data?.client_response || "",
+        jsonExtractionResult.data?.case_facts || []
       );
 
       const response: TalkWithTomasResponse = {
         success: true,
-        response: llmResponse.content,
+        response: jsonExtractionResult.data?.client_response || "",
         userAddress: validatedBody.userAddress,
         timestamp: new Date().toISOString(),
       };

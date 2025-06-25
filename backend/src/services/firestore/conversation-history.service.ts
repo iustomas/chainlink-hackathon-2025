@@ -17,21 +17,24 @@ export class ConversationHistoryService {
   }
 
   /**
-   * Adds a conversation entry to the user's history.
+   * Adds a conversation entry to the user's history and the extracted facts from the agent response.
    * @param userAddress - The user's address (string)
    * @param userMessage - The message sent by the user (string)
    * @param agentResponse - The response from the agent (string)
+   * @param extractedFacts - The extracted facts from the agent response ([string])
    * @returns Promise<void>
    */
-  async addConversation(
+  async addConversationAndExtractedFacts(
     userAddress: string,
     userMessage: string,
-    agentResponse: string
+    agentResponse: string,
+    extractedFacts: string[]
   ): Promise<void> {
     const entry: ConversationEntry = {
       userAddress,
       userMessage,
       agentResponse,
+      caseFacts: extractedFacts,
       timestamp: Date.now(),
     };
 

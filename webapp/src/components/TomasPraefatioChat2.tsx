@@ -16,14 +16,12 @@ import { useAccount } from "wagmi";
 import { modal } from "../../context";
 
 // components
-import TypeWriter from "./TypeWriter";
-import RecommendedToStart from "./RecommendedToStart";
-import RecommendedDocuments from "./RecommendedDocuments";
+import { TypeWriter } from "./TypeWriter";
 
 /**
  * Tomas Praefatio
  */
-export default function TomasPraefatioChat() {
+export default function TomasPraefatioChat2() {
   type Message = { role: "user" | "assistant"; content: string };
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -125,26 +123,6 @@ export default function TomasPraefatioChat() {
 
   return (
     <div className="relative w-full h-full font-spectral bg-white flex flex-col">
-      {/* Header section */}
-      <div className="flex-shrink-0 px-4 pt-4 pb-2 border-b border-gray-300 bg-white">
-        <div className="w-full pl-[20px]">
-          <h2 className="text-md text-gray-600 mb-1">Assistant /</h2>
-          {/* TODO: change to a dynamic title */}
-          <h1 className="text-lg text-black mb-3">
-            Proyecto de Desci para pelirrojas
-          </h1>
-        </div>
-      </div>
-
-      {/* Main content */}
-      <div className="flex-1 p-6">
-        {/* Recommended to start section */}
-        <RecommendedToStart />
-
-        {/* Documents section */}
-        <RecommendedDocuments />
-      </div>
-
       {!address ? (
         <div className="flex flex-col items-center justify-center h-full w-full text-gray-500 text-lg p-4">
           Please connect your wallet to start chatting with Tomas.
@@ -159,6 +137,18 @@ export default function TomasPraefatioChat() {
         </div>
       ) : (
         <>
+          {/* Header section */}
+          <div className="flex-shrink-0 px-4 pt-4 pb-2 border-b border-gray-300 bg-white">
+            <div className="w-full pl-[20px]">
+              <h2 className="text-md text-gray-600 mb-1">Assistant /</h2>
+
+              {/* TODO: change to a dynamic title */}
+              <h1 className="text-lg text-black mb-3">
+                Proyecto de Desci para pelirrojas
+              </h1>
+            </div>
+          </div>
+
           {/* Messages area with scroll */}
           <div
             ref={messagesContainerRef}

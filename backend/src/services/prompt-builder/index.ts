@@ -135,9 +135,9 @@ export class PromptBuilderService {
     return this.buildPrompt({
       promptType: PromptType.TOMAS_PRAEFATIO,
       includePersonality: true,
-      includeSemanticMemory: true,
-      includeArtifacts: true,
-      includeProposals: true,
+      // includeSemanticMemory: true,
+      // includeArtifacts: true,
+      // includeProposals: true,
       includeSystemPrompt: true,
     });
   }

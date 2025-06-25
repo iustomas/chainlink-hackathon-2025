@@ -1,6 +1,6 @@
 // components
-import TomasPraefatioChat from "@/components/TomasPraefatioChat";
 import Sidebar from "@/components/Sidebar";
+import TomasPraefatioChat from "@/components/TomasPraefatioChat";
 
 export default function ChatProvisory() {
   return (

@@ -5,5 +5,6 @@ export interface ConversationEntry {
   userAddress: string;
   userMessage: string;
   agentResponse: string;
+  caseFacts: string[];
   timestamp: number;
 }
