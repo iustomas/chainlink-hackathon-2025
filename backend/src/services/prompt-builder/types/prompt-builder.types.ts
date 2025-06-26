@@ -48,6 +48,11 @@ export interface PromptBuilderConfig {
    * Additional custom context to include in the prompt
    */
   customContext?: string;
+
+  /**
+   * Whether to include the relevant questions for Praefatio
+   */
+  includeRelevantQuestions?: boolean;
 }
 
 /**
