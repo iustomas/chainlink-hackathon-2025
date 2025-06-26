@@ -164,6 +164,78 @@ export class PromptBuilderService {
   }
 
   /**
+   * Build a prompt for the Proposal phase.
+   * @param args - Object containing the conversation context.
+   * @returns The constructed proposal prompt string
+   */
+  public buildProposalPrompt(args: { conversationContext: string }): string {
+    let prompt = "";
+
+    // 1. System Prompt de Proposal
+    const systemPromptPath = join(agentBasePath, "system-prompts/proposal.md");
+    const systemPrompt = this.readFileSafely(systemPromptPath);
+    if (systemPrompt) {
+      prompt += systemPrompt + "\n\n";
+    }
+
+    // 2. Personalidad
+    const personalityPath = join(agentBasePath, "memories/personality-tomas-web3.md");
+    const personality = this.readFileSafely(personalityPath);
+    if (personality) {
+      prompt += "--- PERSONALITY AND TONE GUIDELINES ---\n" + personality + "\n\n";
+    }
+
+    // 3. Reglas de negocio y lógica de proposal
+    const proposalRulesPath = join(agentBasePath, "memories/proposals-praefatio.md");
+    const proposalRules = this.readFileSafely(proposalRulesPath);
+    if (proposalRules) {
+      prompt += "--- PROPOSAL BUSINESS LOGIC AND RULES ---\n" + proposalRules + "\n\n";
+    }
+
+    // 4. Formato de respuesta requerido
+    const responseFormatPath = join(agentBasePath, "responses/response-proposal.md");
+    const responseFormat = this.readFileSafely(responseFormatPath);
+    if (responseFormat) {
+      prompt += "--- REQUIRED RESPONSE FORMAT ---\n" + responseFormat + "\n\n";
+    }
+
+    // 5. Contexto de la conversación
+    if (args.conversationContext) {
+      prompt += "--- CONVERSATION CONTEXT ---\n" + args.conversationContext + "\n\n";
+    }
+
+    return prompt.trim();
+  }
+
+  /**
+   * Build a prompt for the Cognitio phase.
+   * @param conversationHistory - Array with all Praefatio conversation turns.
+   * @returns An object containing the systemPrompt and userMessage (transcript).
+   */
+  public buildCognitioPrompt(conversationHistory: any[]): { systemPrompt: string; userMessage: string } {
+    // Ruta al system prompt de Cognitio
+    const cognitioSystemPromptPath = join(agentBasePath, "system-prompts/cognitio.md");
+    const cognitioSystemPrompt = this.readFileSafely(cognitioSystemPromptPath) || "";
+
+    // Formatear el historial como transcripción
+    const formattedTranscript = conversationHistory
+      .map(turn => {
+        try {
+          const agentResponseJson = JSON.parse(turn.agentResponse);
+          return `Usuario: ${turn.userMessage}\nAgente: ${agentResponseJson.client_response}`;
+        } catch (error) {
+          return `Usuario: ${turn.userMessage}\nAgente: ${turn.agentResponse}`;
+        }
+      })
+      .join('\n\n---\n\n');
+
+    return {
+      systemPrompt: cognitioSystemPrompt,
+      userMessage: formattedTranscript,
+    };
+  }
+
+  /**
    * Read a file safely, returning null if the file doesn't exist or can't be read
    * @param filePath - Path to the file to read
    * @returns File contents or null if error

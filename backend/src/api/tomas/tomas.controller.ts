@@ -30,7 +30,6 @@ import { conversationHistoryService } from "../../services/firestore/conversatio
 
 // prompt builder service
 import { promptBuilderService, PromptType } from "../../services/prompt-builder/index.js";
-import { proposalPromptBuilderService } from "../../services/prompt-builder/index-proposal.js";
 
 // json extractor service
 import { jsonExtractorService } from "../../services/json-extractor/index.js";
@@ -67,134 +66,144 @@ export const tomasController = {
 
       // At this point, body is guaranteed to be defined and valid
       const validatedBody = body as TalkWithTomasRequest;
-
       const userAddress = validatedBody.userAddress;
+      const message = validatedBody.message;
 
-      // Get conversation history
-      const conversationHistory =
-        await conversationHistoryService.getConversationHistory(userAddress);
+      if (typeof message === "string" && message.toLowerCase().includes("ya pagué")) {
+        // Aquí solo gatilla la respuesta Cognitio, sin lógica de generación ni guardado de expediente
+        return c.json({
+          success: true,
+          response: "¡Confirmación recibida! Estoy procesando la información para generar el expediente digital del caso. Esto puede tardar unos momentos.",
+          userAddress: validatedBody.userAddress,
+          timestamp: new Date().toISOString(),
+        });
+      } else {
+        // Get conversation history
+        const conversationHistory =
+          await conversationHistoryService.getConversationHistory(userAddress);
 
-      // --- NUEVA LÓGICA: solo el último turno ---
-      const lastTurn =
-        conversationHistory.length > 0
-          ? conversationHistory[conversationHistory.length - 1]
-          : null;
+        // --- NUEVA LÓGICA: solo el último turno ---
+        const lastTurn =
+          conversationHistory.length > 0
+            ? conversationHistory[conversationHistory.length - 1]
+            : null;
 
-      let caseFactsSummary = "";
-      if (
-        lastTurn &&
-        Array.isArray(lastTurn.caseFacts) &&
-        lastTurn.caseFacts.length > 0
-      ) {
-        caseFactsSummary =
-          "--- SUMMARY OF THE CASE FROM PREVIOUS TURN ---\n" +
-          lastTurn.caseFacts.map((fact) => `- ${fact}`).join("\n");
-      }
+        let caseFactsSummary = "";
+        if (
+          lastTurn &&
+          Array.isArray(lastTurn.caseFacts) &&
+          lastTurn.caseFacts.length > 0
+        ) {
+          caseFactsSummary =
+            "--- SUMMARY OF THE CASE FROM PREVIOUS TURN ---\n" +
+            lastTurn.caseFacts.map((fact) => `- ${fact}`).join("\n");
+        }
 
-      // 1. Construye el prompt condicional ANTES de llamar al LLM
-      let requestedMemories: string[] = [];
-      if (
-        lastTurn &&
-        Array.isArray(lastTurn.actions) &&
-        lastTurn.actions.length > 0
-      ) {
-        requestedMemories = lastTurn.actions
-          .filter((action: string) => action.startsWith("REQUEST_MEMORY_"))
-          .map((action: string) => action.replace("REQUEST_MEMORY_", "").toLowerCase());
-      }
+        // 1. Construye el prompt condicional ANTES de llamar al LLM
+        let requestedMemories: string[] = [];
+        if (
+          lastTurn &&
+          Array.isArray(lastTurn.actions) &&
+          lastTurn.actions.length > 0
+        ) {
+          requestedMemories = lastTurn.actions
+            .filter((action: string) => action.startsWith("REQUEST_MEMORY_"))
+            .map((action: string) => action.replace("REQUEST_MEMORY_", "").toLowerCase());
+        }
 
-      const systemPrompt = promptBuilderService.buildPraefatioPrompt({
-        promptType: PromptType.TOMAS_PRAEFATIO,
-        includePersonality: true,
-        includeSystemPrompt: true,
-        includeRelevantQuestions: true,
-        customContext: caseFactsSummary,
-        requestedMemories, // <-- ¡esto es clave!
-        // ...otros flags si los necesitas...
-      });
-
-      // Build message with previous conversation and current user message
-      const messageWithPreviousConversation =
-        (conversationHistory
-          .map((turn) => `User: ${turn.userMessage}\nTomas: ${turn.tomasReply || ""}`)
-          .join("\n")) +
-        `\nUser: ${validatedBody.message}`;
-
-      // 2. Llama al LLM usando ese prompt
-      const PROVIDER = PROVIDERS.GEMINI;
-      const MODEL = MODELS.GEMINI_2_5_FLASH_PREVIEW_05_20;
-
-      const llmResponse = await llmServiceManager.generateText(
-        {
-          prompt: messageWithPreviousConversation,
-          systemPrompt: systemPrompt,
-          model: MODEL,
-        },
-        PROVIDER
-      );
-
-      console.log("LLM RAW RESPONSE:", llmResponse.content); // Agregado para pruebas
-
-      // Extract Praefatio JSON from LLM response
-      const jsonExtractionResult = jsonExtractorService.extractPraefatioJson(
-        llmResponse.content
-      );
-
-      let clientResponse = jsonExtractionResult.data?.client_response || "";
-      const sufficiencyScore = jsonExtractionResult.data?.sufficiency_score;
-
-      // --- NUEVA LÓGICA: Si el score es alto, genera prompt de propuesta ---
-      if (typeof sufficiencyScore === "number" && sufficiencyScore > 0.75) {
-        console.log(
-          "[CONTROLLER] Sufficiency score high. Generating proposal prompt..."
-        );
-
-        // Usa el contexto de la conversación para el proposal prompt
-        const proposalPrompt = proposalPromptBuilderService.buildProposalPrompt({
-          conversationContext: messageWithPreviousConversation,
+        const systemPrompt = promptBuilderService.buildPraefatioPrompt({
+          promptType: PromptType.TOMAS_PRAEFATIO,
+          includePersonality: true,
+          includeSystemPrompt: true,
+          includeRelevantQuestions: true,
+          customContext: caseFactsSummary,
+          requestedMemories, // <-- ¡esto es clave!
+          // ...otros flags si los necesitas...
         });
 
-        // Llama al LLM con el proposalPrompt como systemPrompt y un mensaje neutro
-        const proposalLlmResponse = await llmServiceManager.generateText(
+        // Build message with previous conversation and current user message
+        const messageWithPreviousConversation =
+          (conversationHistory
+            .map((turn) => `User: ${turn.userMessage}\nTomas: ${turn.tomasReply || ""}`)
+            .join("\n")) +
+          `\nUser: ${validatedBody.message}`;
+
+        // 2. Llama al LLM usando ese prompt
+        const PROVIDER = PROVIDERS.GEMINI;
+        const MODEL = MODELS.GEMINI_2_5_FLASH_PREVIEW_05_20;
+
+        const llmResponse = await llmServiceManager.generateText(
           {
-            prompt: "", // No se requiere mensaje de usuario, solo el contexto
-            systemPrompt: proposalPrompt,
+            prompt: messageWithPreviousConversation,
+            systemPrompt: systemPrompt,
             model: MODEL,
           },
           PROVIDER
         );
 
-        clientResponse = proposalLlmResponse.content;
+        console.log("LLM RAW RESPONSE:", llmResponse.content); // Agregado para pruebas
+
+        // Extract Praefatio JSON from LLM response
+        const jsonExtractionResult = jsonExtractorService.extractPraefatioJson(
+          llmResponse.content
+        );
+
+        let clientResponse = jsonExtractionResult.data?.client_response || "";
+        const sufficiencyScore = jsonExtractionResult.data?.sufficiency_score;
+
+        // --- NUEVA LÓGICA: Si el score es alto, genera prompt de propuesta ---
+        if (typeof sufficiencyScore === "number" && sufficiencyScore > 0.75) {
+          console.log(
+            "[CONTROLLER] Sufficiency score high. Generating proposal prompt..."
+          );
+
+          // Usa el contexto de la conversación para el proposal prompt
+          const proposalPrompt = promptBuilderService.buildProposalPrompt({
+            conversationContext: messageWithPreviousConversation,
+          });
+
+          // Llama al LLM con el proposalPrompt como systemPrompt y un mensaje neutro
+          const proposalLlmResponse = await llmServiceManager.generateText(
+            {
+              prompt: "", // No se requiere mensaje de usuario, solo el contexto
+              systemPrompt: proposalPrompt,
+              model: MODEL,
+            },
+            PROVIDER
+          );
+
+          clientResponse = proposalLlmResponse.content;
+        }
+
+        // Save conversation to Firestore history
+        await conversationHistoryService.addConversationAndExtractedFacts(
+          userAddress,
+          validatedBody.message,
+          jsonExtractionResult.data?.client_response || "",
+          jsonExtractionResult.data?.case_facts || [],
+          jsonExtractionResult.data?.actions || [],
+          jsonExtractionResult.data?.sufficiency_score
+        );
+
+        const prompt = promptBuilderService.buildPraefatioPrompt({
+          promptType: PromptType.TOMAS_PRAEFATIO,
+          includePersonality: true,
+          includeSystemPrompt: true,
+          includeRelevantQuestions: true,
+          customContext: caseFactsSummary,
+          requestedMemories, // <-- ¡esto es clave!
+          // ...otros flags si los necesitas...
+        });
+
+        const response: TalkWithTomasResponse = {
+          success: true,
+          response: clientResponse,
+          userAddress: validatedBody.userAddress,
+          timestamp: new Date().toISOString(),
+        };
+
+        return c.json(response);
       }
-
-      // Save conversation to Firestore history
-      await conversationHistoryService.addConversationAndExtractedFacts(
-        userAddress,
-        validatedBody.message,
-        jsonExtractionResult.data?.client_response || "",
-        jsonExtractionResult.data?.case_facts || [],
-        jsonExtractionResult.data?.actions || [],
-        jsonExtractionResult.data?.sufficiency_score
-      );
-
-      const prompt = promptBuilderService.buildPraefatioPrompt({
-        promptType: PromptType.TOMAS_PRAEFATIO,
-        includePersonality: true,
-        includeSystemPrompt: true,
-        includeRelevantQuestions: true,
-        customContext: caseFactsSummary,
-        requestedMemories, // <-- ¡esto es clave!
-        // ...otros flags si los necesitas...
-      });
-
-      const response: TalkWithTomasResponse = {
-        success: true,
-        response: clientResponse,
-        userAddress: validatedBody.userAddress,
-        timestamp: new Date().toISOString(),
-      };
-
-      return c.json(response);
     } catch (error) {
       console.error("Error in talkWithTomasPraefatio:", error);
 

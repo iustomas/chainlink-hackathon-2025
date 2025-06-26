@@ -98,3 +98,38 @@ export interface PromptBuilderResponse {
 export interface ProposalPromptBuilderArgs {
   conversationContext: string;
 }
+
+/**
+ * Configuration object for building Cognitio prompts
+ */
+export interface CognitioPromptBuilderConfig {
+  /**
+   * The full conversation history to be included in the prompt
+   */
+  conversationHistory: any[]; // Cambiado de ConversationEntry[] a any[]
+}
+
+/**
+ * Response object for Cognitio prompt building operations
+ */
+export interface CognitioPromptBuilderResponse {
+  /**
+   * Whether the prompt was built successfully
+   */
+  success: boolean;
+
+  /**
+   * The constructed system prompt string
+   */
+  systemPrompt?: string;
+
+  /**
+   * The constructed user message (transcript)
+   */
+  userMessage?: string;
+
+  /**
+   * Error message if the prompt building failed
+   */
+  error?: string;
+}
