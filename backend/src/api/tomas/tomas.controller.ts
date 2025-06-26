@@ -106,6 +106,8 @@ export const tomasController = {
         PROVIDER
       );
 
+      console.log("LLM RAW RESPONSE:", llmResponse.content); // Agregado para pruebas
+
       // Extract Praefatio JSON from LLM response
       const jsonExtractionResult = jsonExtractorService.extractPraefatioJson(
         llmResponse.content
