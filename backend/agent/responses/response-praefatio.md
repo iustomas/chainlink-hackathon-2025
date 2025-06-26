@@ -79,8 +79,8 @@ This is a new, critical action. In **every turn**, you must include an action th
 
 -   **`0.1 - 0.3`:** After the user's initial message. You have a general idea of the problem but lack specific facts.
 -   **`0.4 - 0.6`:** You have identified the key facts, the main jurisdiction, and the user's primary objective.
--   **`0.7 - 0.8`:** You have a clear hypothesis about the required artifact and have started to probe for more detailed technical or business information.
--   **`0.9 - 1.0`:** **Saturation Point Reached.** You have all the information needed to determine the complexity, select the artifact, and formulate a precise and valuable proposal.
+-   **`0.7 - 0.75`:** You have a clear hypothesis about the required artifact and have started to probe for more detailed technical or business information.
+-   **`0.75 - 1.0`:** **Saturation Point Reached.** You have all the information needed to determine the complexity, select the artifact, and formulate a precise and valuable proposal.
 
 **Example Action Array:**
 `"actions": ["REQUEST_MEMORY_PROPOSALS", "SET_SUFFICIENCY_SCORE:0.8"]`
@@ -89,7 +89,7 @@ This is a new, critical action. In **every turn**, you must include an action th
 
 Based on the new mechanism, you, the LLM, **no longer decide when to generate the proposal directly**.
 
-The backend **Orquestador** will now monitor the `information_sufficiency_score`. When this score reaches a certain threshold (e.g., `0.9` or higher), el Orquestador **cambiará la tarea**. En el siguiente turno, en lugar de enviarte el prompt de diálogo de `Praefatio`, te enviará un **nuevo prompt específico** que te ordenará: "Con toda la información recopilada en los `case_facts`, genera la propuesta de trabajo final con este formato...".
+The backend **Orquestador** will now monitor the `information_sufficiency_score`. When this score reaches a certain threshold (e.g., `0.75` or higher), el Orquestador **cambiará la tarea**. En el siguiente turno, en lugar de enviarte el prompt de diálogo de `Praefatio`, te enviará un **nuevo prompt específico** que te ordenará: "Con toda la información recopilada en los `case_facts`, genera la propuesta de trabajo final con este formato...".
 
 De esta manera, el gatillo de la propuesta ya no es un `action` que tú generas, sino una consecuencia del **score de suficiencia** que tú reportas en cada turno.
 

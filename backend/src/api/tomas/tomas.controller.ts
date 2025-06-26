@@ -29,7 +29,7 @@ import { getEmailServiceManager } from "../../services/email/index.js";
 import { conversationHistoryService } from "../../services/firestore/conversation-history.service.js";
 
 // prompt builder service
-import { promptBuilderService } from "../../services/prompt-builder/index.js";
+import { promptBuilderService, PromptType } from "../../services/prompt-builder/index.js";
 
 // json extractor service
 import { jsonExtractorService } from "../../services/json-extractor/index.js";
@@ -122,6 +122,14 @@ export const tomasController = {
         jsonExtractionResult.data?.actions || [],
         jsonExtractionResult.data?.sufficiency_score 
       );
+
+      const prompt = promptBuilderService.buildPrompt({
+        promptType: PromptType.TOMAS_PRAEFATIO,
+        includePersonality: true,
+        includeSystemPrompt: true,
+        includeRelevantQuestions: true,
+        // ...otros flags...
+      }, jsonExtractionResult.data?.sufficiency_score);
 
       const response: TalkWithTomasResponse = {
         success: true,
