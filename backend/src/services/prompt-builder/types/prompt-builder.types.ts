@@ -85,3 +85,10 @@ export interface PromptBuilderResponse {
     systemPromptIncluded: boolean;
   };
 }
+
+/**
+ * Argumentos para construir el prompt de proposal
+ */
+export interface ProposalPromptBuilderArgs {
+  conversationContext: string;
+}

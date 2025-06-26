@@ -30,6 +30,7 @@ import { conversationHistoryService } from "../../services/firestore/conversatio
 
 // prompt builder service
 import { promptBuilderService, PromptType } from "../../services/prompt-builder/index.js";
+import { proposalPromptBuilderService } from "../../services/prompt-builder/index-proposal.js";
 
 // json extractor service
 import { jsonExtractorService } from "../../services/json-extractor/index.js";
@@ -115,6 +116,33 @@ export const tomasController = {
         llmResponse.content
       );
 
+      let clientResponse = jsonExtractionResult.data?.client_response || "";
+      const sufficiencyScore = jsonExtractionResult.data?.sufficiency_score;
+
+      // --- NUEVA LÓGICA: Si el score es alto, genera prompt de propuesta ---
+      if (typeof sufficiencyScore === "number" && sufficiencyScore > 0.75) {
+        console.log(
+          "[CONTROLLER] Sufficiency score high. Generating proposal prompt..."
+        );
+
+        // Usa el contexto de la conversación para el proposal prompt
+        const proposalPrompt = proposalPromptBuilderService.buildProposalPrompt({
+          conversationContext: messageWithPreviousConversation,
+        });
+
+        // Llama al LLM con el proposalPrompt como systemPrompt y un mensaje neutro
+        const proposalLlmResponse = await llmServiceManager.generateText(
+          {
+            prompt: "", // No se requiere mensaje de usuario, solo el contexto
+            systemPrompt: proposalPrompt,
+            model: MODEL,
+          },
+          PROVIDER
+        );
+
+        clientResponse = proposalLlmResponse.content;
+      }
+
       // Save conversation to Firestore history
       await conversationHistoryService.addConversationAndExtractedFacts(
         userAddress,
@@ -122,7 +150,7 @@ export const tomasController = {
         jsonExtractionResult.data?.client_response || "",
         jsonExtractionResult.data?.case_facts || [],
         jsonExtractionResult.data?.actions || [],
-        jsonExtractionResult.data?.sufficiency_score 
+        jsonExtractionResult.data?.sufficiency_score
       );
 
       const prompt = promptBuilderService.buildPraefatioPrompt({
@@ -135,7 +163,7 @@ export const tomasController = {
 
       const response: TalkWithTomasResponse = {
         success: true,
-        response: jsonExtractionResult.data?.client_response || "",
+        response: clientResponse,
         userAddress: validatedBody.userAddress,
         timestamp: new Date().toISOString(),
       };
