@@ -92,7 +92,7 @@ export const tomasController = {
         "messageWithPreviousConversation",
         messageWithPreviousConversation
       );
-
+      
       // Generate LLM response
       const PROVIDER = PROVIDERS.GEMINI;
       const MODEL = MODELS.GEMINI_2_5_FLASH_PREVIEW_05_20;
@@ -116,7 +116,9 @@ export const tomasController = {
         userAddress,
         validatedBody.message,
         jsonExtractionResult.data?.client_response || "",
-        jsonExtractionResult.data?.case_facts || []
+        jsonExtractionResult.data?.case_facts || [],
+        jsonExtractionResult.data?.actions || [],
+        jsonExtractionResult.data?.sufficiency_score 
       );
 
       const response: TalkWithTomasResponse = {

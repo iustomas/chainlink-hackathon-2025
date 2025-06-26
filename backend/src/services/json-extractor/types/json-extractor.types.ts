@@ -103,7 +103,7 @@ export interface JsonValidationResult {
 }
 
 /**
- * Praefatio ECU structure types
+ * Praefatio ECU structure types  ¿Creo que esto no se está usando?
  */
 export interface PraefatioEcu {
   case_facts: {
@@ -131,6 +131,8 @@ export interface PraefatioEcu {
 export interface PraefatioResponse {
   client_response: string;
   case_facts: string[];
+  actions: PraefatioAction[]; 
+  sufficiency_score?: number; 
 }
 
 /**
@@ -170,3 +172,17 @@ export interface PraefatioExtractionResult {
     responseStartsWithYellow: boolean;
   };
 }
+
+// Define los comandos válidos como un enum
+export enum MemoryRequestAction {
+  REQUEST_MEMORY_ARTIFACTS = "REQUEST_MEMORY_ARTIFACTS",
+  REQUEST_MEMORY_USE_CASES = "REQUEST_MEMORY_USE_CASES",
+  REQUEST_MEMORY_QUESTIONS = "REQUEST_MEMORY_QUESTIONS",
+  REQUEST_MEMORY_PROPOSALS = "REQUEST_MEMORY_PROPOSALS",
+}
+
+// Type para el score
+export type SufficiencyScoreAction = `SET_SUFFICIENCY_SCORE:${number}`;
+
+// Type union para actions
+export type PraefatioAction = MemoryRequestAction | SufficiencyScoreAction;
