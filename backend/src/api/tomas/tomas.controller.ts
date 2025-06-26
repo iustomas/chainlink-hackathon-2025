@@ -70,13 +70,8 @@ export const tomasController = {
       const message = validatedBody.message;
 
       if (typeof message === "string" && message.toLowerCase().includes("ya pagué")) {
-        // Aquí solo gatilla la respuesta Cognitio, sin lógica de generación ni guardado de expediente
-        return c.json({
-          success: true,
-          response: "¡Confirmación recibida! Estoy procesando la información para generar el expediente digital del caso. Esto puede tardar unos momentos.",
-          userAddress: validatedBody.userAddress,
-          timestamp: new Date().toISOString(),
-        });
+        // Ahora sí, gatilla el método de Cognitio
+        return await tomasController.generateCognitio(c, userAddress);
       } else {
         // Get conversation history
         const conversationHistory =
@@ -117,8 +112,7 @@ export const tomasController = {
           includeSystemPrompt: true,
           includeRelevantQuestions: true,
           customContext: caseFactsSummary,
-          requestedMemories, // <-- ¡esto es clave!
-          // ...otros flags si los necesitas...
+          requestedMemories,
         });
 
         // Build message with previous conversation and current user message
@@ -141,7 +135,7 @@ export const tomasController = {
           PROVIDER
         );
 
-        console.log("LLM RAW RESPONSE:", llmResponse.content); // Agregado para pruebas
+        console.log("LLM RAW RESPONSE:", llmResponse.content);
 
         // Extract Praefatio JSON from LLM response
         const jsonExtractionResult = jsonExtractorService.extractPraefatioJson(
@@ -151,31 +145,16 @@ export const tomasController = {
         let clientResponse = jsonExtractionResult.data?.client_response || "";
         const sufficiencyScore = jsonExtractionResult.data?.sufficiency_score;
 
-        // --- NUEVA LÓGICA: Si el score es alto, genera prompt de propuesta ---
+        // --- NUEVA LÓGICA: Si el score es alto, delega a generateProposal ---
         if (typeof sufficiencyScore === "number" && sufficiencyScore > 0.75) {
-          console.log(
-            "[CONTROLLER] Sufficiency score high. Generating proposal prompt..."
+          return await tomasController.generateProposal(
+            c,
+            userAddress,
+            messageWithPreviousConversation
           );
-
-          // Usa el contexto de la conversación para el proposal prompt
-          const proposalPrompt = promptBuilderService.buildProposalPrompt({
-            conversationContext: messageWithPreviousConversation,
-          });
-
-          // Llama al LLM con el proposalPrompt como systemPrompt y un mensaje neutro
-          const proposalLlmResponse = await llmServiceManager.generateText(
-            {
-              prompt: "", // No se requiere mensaje de usuario, solo el contexto
-              systemPrompt: proposalPrompt,
-              model: MODEL,
-            },
-            PROVIDER
-          );
-
-          clientResponse = proposalLlmResponse.content;
         }
 
-        // Save conversation to Firestore history
+        // Save conversation to Firestore history (solo praefatio)
         await conversationHistoryService.addConversationAndExtractedFacts(
           userAddress,
           validatedBody.message,
@@ -191,8 +170,7 @@ export const tomasController = {
           includeSystemPrompt: true,
           includeRelevantQuestions: true,
           customContext: caseFactsSummary,
-          requestedMemories, // <-- ¡esto es clave!
-          // ...otros flags si los necesitas...
+          requestedMemories,
         });
 
         const response: TalkWithTomasResponse = {
@@ -244,6 +222,80 @@ export const tomasController = {
         500
       );
     }
+  },
+
+  // Nuevo método para generar la propuesta
+  generateProposal: async (
+    c: Context,
+    userAddress: string,
+    messageWithPreviousConversation: string
+  ) => {
+    const PROVIDER = PROVIDERS.GEMINI;
+    const MODEL = MODELS.GEMINI_2_5_FLASH_PREVIEW_05_20;
+
+    const proposalPrompt = promptBuilderService.buildProposalPrompt({
+      conversationContext: messageWithPreviousConversation,
+    });
+
+    const proposalLlmResponse = await llmServiceManager.generateText(
+      {
+        prompt: "",
+        systemPrompt: proposalPrompt,
+        model: MODEL,
+      },
+      PROVIDER
+    );
+
+    // Guardar la propuesta generada si es necesario aquí
+
+    // Espera la confirmación de pago ("ya pagué") en el siguiente mensaje del usuario
+    // Esto se logra devolviendo una respuesta que instruya al usuario a confirmar el pago,
+    // y el flujo principal (talkWithTomasPraefatio) debe estar preparado para detectar "ya pagué"
+    // en el siguiente mensaje y así avanzar a Cognitio.
+
+    return c.json({
+      success: true,
+      response: proposalLlmResponse.content,
+      userAddress,
+      timestamp: new Date().toISOString(),
+      nextStep: "Esperando confirmación de pago. Por favor responde con 'ya pagué' cuando hayas realizado el pago para continuar con la generación del expediente digital.",
+    });
+  },
+
+  // Nuevo método para generar el expediente digital (Cognitio)
+  generateCognitio: async (
+    c: Context,
+    userAddress: string
+  ) => {
+    // Obtiene el historial completo de la conversación
+    const conversationHistory = await conversationHistoryService.getConversationHistory(userAddress);
+
+    // Construye el prompt para Cognitio usando el promptBuilderService
+    const { systemPrompt, userMessage } = promptBuilderService.buildCognitioPrompt(conversationHistory);
+
+    // Llama al LLM con el prompt de Cognitio
+    const PROVIDER = PROVIDERS.GEMINI;
+    const MODEL = MODELS.GEMINI_2_5_FLASH_PREVIEW_05_20;
+
+    const cognitioLlmResponse = await llmServiceManager.generateText(
+      {
+        prompt: userMessage,
+        systemPrompt: systemPrompt,
+        model: MODEL,
+      },
+      PROVIDER
+    );
+
+    // Log del output de Cognitio al final de la terminal
+    console.log("\n========== OUTPUT COGNITIO ==========\n", cognitioLlmResponse.content, "\n=====================================\n");
+
+    return c.json({
+      success: true,
+      response: cognitioLlmResponse.content,
+      userAddress,
+      timestamp: new Date().toISOString(),
+      nextStep: "Expediente digital generado. Próximo paso: análisis investigativo.",
+    });
   },
 
   // Tomas require help from Eugenio (Our human lawyer)
