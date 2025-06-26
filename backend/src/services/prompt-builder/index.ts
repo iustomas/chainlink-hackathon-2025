@@ -83,57 +83,80 @@ export class PromptBuilderService {
       }
     }
 
-    // Add semantic memory if specified (extra)
-    if (config.includeSemanticMemory) {
-      const semanticPath = join(
-        agentBasePath,
-        "memories/semantinc-tomas-web3.md"
-      );
-      const semantic = this.readFileSafely(semanticPath);
-      if (semantic) {
-        prompt += `Your semantic memory contains the following knowledge:\n${semantic}\n\n`;
-      }
-    }
+    // --- NUEVO: Agrega memorias dinámicamente según requestedMemories ---
+    if (Array.isArray(config.requestedMemories)) {
+      for (const memory of config.requestedMemories) {
+        let memoryPath = "";
+        let memoryLabel = "";
 
-    // Add artifacts if specified (extra)
-    if (config.includeArtifacts) {
-      const artifactsPath = join(
-        agentBasePath,
-        "memories/artifacts-praefatio.md"
-      );
-      const artifacts = this.readFileSafely(artifactsPath);
-      if (artifacts) {
-        prompt += `Available artifacts and templates:\n${artifacts}\n\n`;
-      }
-    }
+        switch (memory) {
+          case "artifacts":
+            memoryPath = join(agentBasePath, "memories/artifacts-praefatio.md");
+            memoryLabel = "Available artifacts and templates";
+            break;
+          case "proposals":
+            memoryPath = join(agentBasePath, "memories/proposals-praefatio.md");
+            memoryLabel = "Proposal templates and structures";
+            break;
+          case "questions":
+          case "relevant-questions":
+            memoryPath = join(agentBasePath, "memories/relevant-questions.md");
+            memoryLabel = "Relevant questions for Praefatio";
+            break;
+          case "use_cases":
+            memoryPath = join(agentBasePath, "memories/use-cases-praefatio.md"); 
+            memoryLabel = "Artifact use cases and limitations";
+            break;
+          case "semantic":
+            memoryPath = join(agentBasePath, "memories/semantinc-tomas-web3.md");
+            memoryLabel = "Your semantic memory contains the following knowledge";
+            break;
+          // Puedes agregar más casos según tus necesidades
+          default:
+            console.warn(`[PromptBuilder] Memoria desconocida: ${memory}`);
+            continue;
+        }
 
-    // Add proposals if specified (extra)
-    if (config.includeProposals) {
-      const proposalsPath = join(
-        agentBasePath,
-        "memories/proposals-praefatio.md"
-      );
-      const proposals = this.readFileSafely(proposalsPath);
-      if (proposals) {
-        prompt += `Proposal templates and structures:\n${proposals}\n\n`;
+        const memoryContent = this.readFileSafely(memoryPath);
+        if (memoryContent) {
+          prompt += `${memoryLabel}:\n${memoryContent}\n\n`;
+        }
+      }
+    } else {
+      // Lógica legacy: flags booleanos
+      if (config.includeSemanticMemory) {
+        const semanticPath = join(agentBasePath, "memories/semantinc-tomas-web3.md");
+        const semantic = this.readFileSafely(semanticPath);
+        if (semantic) {
+          prompt += `Your semantic memory contains the following knowledge:\n${semantic}\n\n`;
+        }
+      }
+      if (config.includeArtifacts) {
+        const artifactsPath = join(agentBasePath, "memories/artifacts-praefatio.md");
+        const artifacts = this.readFileSafely(artifactsPath);
+        if (artifacts) {
+          prompt += `Available artifacts and templates:\n${artifacts}\n\n`;
+        }
+      }
+      if (config.includeProposals) {
+        const proposalsPath = join(agentBasePath, "memories/proposals-praefatio.md");
+        const proposals = this.readFileSafely(proposalsPath);
+        if (proposals) {
+          prompt += `Proposal templates and structures:\n${proposals}\n\n`;
+        }
+      }
+      if (config.includeRelevantQuestions) {
+        const relevantQuestionsPath = join(agentBasePath, "memories/relevant-questions.md");
+        const relevantQuestions = this.readFileSafely(relevantQuestionsPath);
+        if (relevantQuestions) {
+          prompt += `Relevant questions for Praefatio:\n${relevantQuestions}\n\n`;
+        }
       }
     }
 
     // Add custom context if provided (extra)
     if (config.customContext) {
       prompt += `Additional context:\n${config.customContext}\n\n`;
-    }
-
-    // Add relevant questions for Praefatio if specified
-    if (config.includeRelevantQuestions) {  
-      const relevantQuestionsPath = join(
-        agentBasePath,
-        "memories/relevant-questions.md"
-      );
-      const relevantQuestions = this.readFileSafely(relevantQuestionsPath);
-      if (relevantQuestions) {
-        prompt += `Relevant questions for Praefatio:\n${relevantQuestions}\n\n`;
-      }
     }
 
     console.log("Prompt generado:", prompt); // Para depuración

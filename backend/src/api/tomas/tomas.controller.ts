@@ -92,12 +92,24 @@ export const tomasController = {
       }
 
       // 1. Construye el prompt condicional ANTES de llamar al LLM
+      let requestedMemories: string[] = [];
+      if (
+        lastTurn &&
+        Array.isArray(lastTurn.actions) &&
+        lastTurn.actions.length > 0
+      ) {
+        requestedMemories = lastTurn.actions
+          .filter((action: string) => action.startsWith("REQUEST_MEMORY_"))
+          .map((action: string) => action.replace("REQUEST_MEMORY_", "").toLowerCase());
+      }
+
       const systemPrompt = promptBuilderService.buildPraefatioPrompt({
         promptType: PromptType.TOMAS_PRAEFATIO,
         includePersonality: true,
         includeSystemPrompt: true,
         includeRelevantQuestions: true,
         customContext: caseFactsSummary,
+        requestedMemories, // <-- ¡esto es clave!
         // ...otros flags si los necesitas...
       });
 
@@ -170,7 +182,9 @@ export const tomasController = {
         includePersonality: true,
         includeSystemPrompt: true,
         includeRelevantQuestions: true,
-        // ...otros flags...
+        customContext: caseFactsSummary,
+        requestedMemories, // <-- ¡esto es clave!
+        // ...otros flags si los necesitas...
       });
 
       const response: TalkWithTomasResponse = {

@@ -53,6 +53,12 @@ export interface PromptBuilderConfig {
    * Whether to include the relevant questions for Praefatio
    */
   includeRelevantQuestions?: boolean;
+
+  /**
+   * (Nuevo) Lista de memorias dinámicas a incluir según lo que pida Tomas.
+   * Ejemplo: ["artifacts", "proposals", "semantic", "relevant-questions"]
+   */
+  requestedMemories?: string[];
 }
 
 /**
