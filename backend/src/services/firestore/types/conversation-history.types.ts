@@ -7,6 +7,7 @@ export interface ConversationEntry {
   userAddress: string;
   userMessage: string;
   agentResponse: string;
+  tomasReply?: string; 
   caseFacts: string[];
   actions: PraefatioAction[];
   sufficiencyScore: number;

@@ -74,17 +74,22 @@ export const tomasController = {
       const conversationHistory =
         await conversationHistoryService.getConversationHistory(userAddress);
 
-      const messageWithPreviousConversation = `
-        User message: ${validatedBody.message}
-        \n\nPrevious conversation:\n${conversationHistory
-          .map((entry) => {
-            const facts =
-              entry.caseFacts && entry.caseFacts.length > 0
-                ? `Case facts:\n- ${entry.caseFacts.join("\n- ")}`
-                : "";
-            return `User message: ${entry.userMessage}\nTomas response: ${entry.agentResponse}${facts ? `\n${facts}` : ""}`;
-          })
-          .join("\n\n")}`;
+      // --- NUEVA LÓGICA: solo el último turno ---
+      const lastTurn =
+        conversationHistory.length > 0
+          ? conversationHistory[conversationHistory.length - 1]
+          : null;
+
+      let caseFactsSummary = "";
+      if (
+        lastTurn &&
+        Array.isArray(lastTurn.caseFacts) &&
+        lastTurn.caseFacts.length > 0
+      ) {
+        caseFactsSummary =
+          "--- SUMMARY OF THE CASE FROM PREVIOUS TURN ---\n" +
+          lastTurn.caseFacts.map((fact) => `- ${fact}`).join("\n");
+      }
 
       // 1. Construye el prompt condicional ANTES de llamar al LLM
       const systemPrompt = promptBuilderService.buildPraefatioPrompt({
@@ -92,9 +97,16 @@ export const tomasController = {
         includePersonality: true,
         includeSystemPrompt: true,
         includeRelevantQuestions: true,
-        customContext: messageWithPreviousConversation,
+        customContext: caseFactsSummary,
         // ...otros flags si los necesitas...
       });
+
+      // Build message with previous conversation and current user message
+      const messageWithPreviousConversation =
+        (conversationHistory
+          .map((turn) => `User: ${turn.userMessage}\nTomas: ${turn.tomasReply || ""}`)
+          .join("\n")) +
+        `\nUser: ${validatedBody.message}`;
 
       // 2. Llama al LLM usando ese prompt
       const PROVIDER = PROVIDERS.GEMINI;
