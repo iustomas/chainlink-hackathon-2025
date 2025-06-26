@@ -62,6 +62,19 @@ The Markdown text within `client_response` must follow the professional structur
 - **Next Steps:**  
   Provide a clear call to action for the user to accept the proposal.
 
+
 ---
 
-⚠️ **IMPORTANT:** Output nothing but the JSON object. Any additional characters will break downstream
+## 4. Valid Example Output
+
+Below is a valid example of the expected JSON output.  
+**Your response must follow this structure exactly, with the full Markdown proposal inside `client_response` and the price command in `actions`.**
+
+```json
+{
+  "client_response": "# Work Proposal: iusTomas\n\n**1. Our Understanding**\n- CulturaToken is a platform enabling cultural communities to issue membership tokens for non-financial benefits (early access, voting, discounts).\n- Tokens are designed strictly as membership passes, with no financial return, dividends, or profit participation.\n- The objective is to ensure these tokens are not classified as securities or a public offering under Chilean law.\n\n**2. Scope of the Proposal**\n- **Proposed Artifact:** Compliance Analysis\n- **Core Objective:** To provide a legal analysis ensuring CulturaToken's membership tokens are classified as utility tokens, avoiding unnecessary regulatory obligations.\n- **Key Areas of Analysis:**\n    - Legal classification of membership tokens under Chilean law\n    - Assessment of governance and utility features\n    - Review of whitepaper language and website disclaimers\n    - Recommendations for structuring to avoid security classification\n\n**3. Commercial Terms & Service Levels**\n- **Estimated Delivery:** 48 hours after confirmation.\n- **Levels of Depth & Recommended Use:**\n    - As an Internal Strategic Tool: This document will provide your team with a robust, evidence-based analysis for internal decision-making and alignment.\n    - As a \"Case File Accelerator\" for Human Counsel: For matters requiring final legal sign-off, the primary value of this artifact is as a comprehensive starting point for your trusted lawyer. By providing them with this detailed analysis, you can save significant time and legal fees, allowing them to focus on high-value final validation.\n\n**4. Next Steps**\nIf you agree with this proposal, please respond with '**Acepto la propuesta**'. Upon your confirmation, the iusTomas system will begin the formal deliberative process to generate your artifact.",
+  "actions": ["SET_PROPOSAL_PRICE_USDC:150"]
+}
+```
+
+⚠️ **IMPORTANT:** Output nothing but the JSON object. Any additional characters will break downstream parsing.

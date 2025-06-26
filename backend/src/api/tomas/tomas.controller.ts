@@ -85,15 +85,17 @@ export const tomasController = {
           })
           .join("\n\n")}`;
 
-      // Build system prompt using the prompt builder service
-      const systemPrompt = promptBuilderService.buildTomasPraefatioPrompt();
+      // 1. Construye el prompt condicional ANTES de llamar al LLM
+      const systemPrompt = promptBuilderService.buildPraefatioPrompt({
+        promptType: PromptType.TOMAS_PRAEFATIO,
+        includePersonality: true,
+        includeSystemPrompt: true,
+        includeRelevantQuestions: true,
+        customContext: messageWithPreviousConversation,
+        // ...otros flags si los necesitas...
+      });
 
-      console.log(
-        "messageWithPreviousConversation",
-        messageWithPreviousConversation
-      );
-      
-      // Generate LLM response
+      // 2. Llama al LLM usando ese prompt
       const PROVIDER = PROVIDERS.GEMINI;
       const MODEL = MODELS.GEMINI_2_5_FLASH_PREVIEW_05_20;
 
@@ -123,13 +125,13 @@ export const tomasController = {
         jsonExtractionResult.data?.sufficiency_score 
       );
 
-      const prompt = promptBuilderService.buildPrompt({
+      const prompt = promptBuilderService.buildPraefatioPrompt({
         promptType: PromptType.TOMAS_PRAEFATIO,
         includePersonality: true,
         includeSystemPrompt: true,
         includeRelevantQuestions: true,
         // ...otros flags...
-      }, jsonExtractionResult.data?.sufficiency_score);
+      });
 
       const response: TalkWithTomasResponse = {
         success: true,
