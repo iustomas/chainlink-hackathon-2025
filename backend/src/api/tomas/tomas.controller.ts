@@ -160,10 +160,21 @@ export const tomasController = {
             proposalResponse.response
           );
 
+        // Save conversation to Firestore history with the proposal price
+        await conversationHistoryService.addConversationAndExtractedFacts(
+          userAddress,
+          validatedBody.message,
+          jsonExtractionResultProposal.data?.client_response || "",
+          jsonExtractionResult.data?.case_facts || [],
+          jsonExtractionResult.data?.actions || [],
+          jsonExtractionResult.data?.sufficiency_score,
+          jsonExtractionResultProposal.data?.price || 0
+        );
+
         return c.json({
           success: true,
           response: jsonExtractionResultProposal.data?.client_response || "",
-          score: jsonExtractionResultProposal.data?.price || 0,
+          price: jsonExtractionResultProposal.data?.price || 0,
           caseFacts: jsonExtractionResult.data?.case_facts || [],
         });
       }

@@ -33,7 +33,8 @@ export class ConversationHistoryService {
     agentResponse: string,
     extractedFacts: string[],
     actions: PraefatioAction[],
-    sufficiencyScore?: number
+    sufficiencyScore?: number,
+    price?: number
   ): Promise<void> {
     const entry: ConversationEntry = {
       userAddress,
@@ -43,6 +44,7 @@ export class ConversationHistoryService {
       actions: actions ?? [],
       sufficiencyScore: sufficiencyScore ?? 0,
       timestamp: Date.now(),
+      ...(price !== undefined && price !== null && { price }),
     };
 
     await this.firestore.collection(this.collectionName).add(entry);

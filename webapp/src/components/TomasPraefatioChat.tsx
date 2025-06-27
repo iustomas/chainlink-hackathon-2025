@@ -18,6 +18,7 @@ import RecommendedToStart from "./RecommendedToStart";
 import RecommendedDocuments from "./RecommendedDocuments";
 import TomasIsThinking from "./TomasIsThinking";
 import CaseFacts from "./CaseFacts";
+import PayProposal from "./PayProposal";
 
 // icons
 import { LuPaperclip, LuLayers } from "react-icons/lu";
@@ -38,12 +39,20 @@ export default function TomasPraefatioChat() {
       timestamp: number;
     }>;
     caseFacts: string[];
+    price?: number;
+  };
+
+  type TomasResponse = {
+    response: string;
+    caseFacts?: string[];
+    price?: number;
   };
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [caseFacts, setCaseFacts] = useState<string[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [proposalPrice, setProposalPrice] = useState<number | null>(null);
 
   const [hasChatted, setHasChatted] = useState(false);
   const [isHistoricalData, setIsHistoricalData] = useState(false);
@@ -135,6 +144,11 @@ export default function TomasPraefatioChat() {
           setCaseFacts(data.caseFacts || []);
           setHasChatted(true);
           setIsHistoricalData(true);
+
+          // Check if there's a price in the historical data
+          if (data.price !== undefined && data.price > 0) {
+            setProposalPrice(data.price);
+          }
         }
       } catch (error) {
         console.error("Error loading conversation history:", error);
@@ -157,8 +171,6 @@ export default function TomasPraefatioChat() {
     setIsCaseFactsExpanded(isExpanded);
   };
 
-  console.log("caseFacts", caseFacts);
-
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || loading) return;
@@ -178,13 +190,20 @@ export default function TomasPraefatioChat() {
           body: JSON.stringify({ userAddress: address, message: input }),
         }
       );
-      const data = await res.json();
+      const data: TomasResponse = await res.json();
       if (data && data.response) {
         setMessages((prev) => [
           ...prev,
           { role: "assistant", content: data.response } as Message,
         ]);
         setCaseFacts(data.caseFacts || []);
+
+        console.log("data", data);
+
+        // Check if there's a price in the response
+        if (data.price !== undefined) {
+          setProposalPrice(data.price);
+        }
       } else {
         setMessages((prev) => [
           ...prev,
@@ -205,6 +224,13 @@ export default function TomasPraefatioChat() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePayTomas = () => {
+    // TODO: Implement payment logic
+    console.log("Paying Tomas:", proposalPrice);
+    // Reset the price after payment
+    setProposalPrice(null);
   };
 
   return isLoading || isLoadingConversationHistory ? (
@@ -358,95 +384,106 @@ export default function TomasPraefatioChat() {
               isCaseFactsExpanded ? "ml-0" : "mx-auto"
             }`}
           >
-            <form onSubmit={handleSend} className="w-full flex flex-col gap-4">
-              <div className="relative w-full">
-                <textarea
-                  className="w-full resize-none rounded-2xl text-md focus:outline-none bg-transparent"
-                  placeholder="Ask Tomas anything..."
-                  rows={hasChatted ? 2 : 4}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  disabled={loading}
-                  onKeyDown={(e) => {
-                    if (
-                      e.key === "Enter" &&
-                      !e.shiftKey &&
-                      !e.ctrlKey &&
-                      !e.metaKey
-                    ) {
-                      e.preventDefault();
-                      if (!loading && input.trim()) {
-                        handleSend(e as unknown as React.FormEvent);
+            {proposalPrice !== null ? (
+              <PayProposal price={proposalPrice} onPay={handlePayTomas} />
+            ) : (
+              // Show normal input form
+              <form
+                onSubmit={handleSend}
+                className="w-full flex flex-col gap-4"
+              >
+                <div className="relative w-full">
+                  <textarea
+                    className="w-full resize-none rounded-2xl text-md focus:outline-none bg-transparent"
+                    placeholder="Ask Tomas anything..."
+                    rows={hasChatted ? 2 : 4}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    disabled={loading}
+                    onKeyDown={(e) => {
+                      if (
+                        e.key === "Enter" &&
+                        !e.shiftKey &&
+                        !e.ctrlKey &&
+                        !e.metaKey
+                      ) {
+                        e.preventDefault();
+                        if (!loading && input.trim()) {
+                          handleSend(e as unknown as React.FormEvent);
+                        }
+                      } else if (
+                        e.key === "Enter" &&
+                        (e.ctrlKey || e.metaKey)
+                      ) {
+                        e.preventDefault();
+                        if (!loading && input.trim()) {
+                          handleSend(e as unknown as React.FormEvent);
+                        }
                       }
-                    } else if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-                      e.preventDefault();
-                      if (!loading && input.trim()) {
-                        handleSend(e as unknown as React.FormEvent);
-                      }
-                    }
-                  }}
-                />
-
-                <button
-                  type="submit"
-                  className="absolute bottom-2 right-2 bg-black text-white px-6 py-3 rounded-xl text-lg font-semibold hover:bg-[#2c3552] transition shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                  disabled={loading || !input.trim()}
-                >
-                  {loading ? (
-                    <>
-                      <span className="loader-tomas inline-block w-4 h-4 border-2 border-white rounded-full animate-spin"></span>
-                    </>
-                  ) : (
-                    <span className="text-lg font-semibold">Talk Tomas</span>
-                  )}
-                </button>
-              </div>
-
-              {!hasChatted && (
-                <div
-                  className="flex flex-col md:flex-row gap-4 w-full mt-2 transition-all duration-500 ease-in-out opacity-100 translate-y-0"
-                  style={{
-                    transitionProperty: "opacity, transform",
-                    opacity: !hasChatted ? 1 : 0,
-                    transform: !hasChatted
-                      ? "translateY(0)"
-                      : "translateY(20px)",
-                  }}
-                >
-                  <button
-                    type="button"
-                    className="flex-1 bg-white rounded-xl py-5 px-6 text-left flex items-center justify-between shadow-sm hover:bg-gray-50 transition cursor-pointer group"
-                  >
-                    <div className="flex flex-col">
-                      <span className="text-base font-semibold text-gray-900">
-                        Upload files
-                      </span>
-
-                      <span className="text-sm text-gray-500">
-                        Choose files from your computer or a Vault project
-                      </span>
-                    </div>
-                    <LuPaperclip className="text-2xl text-gray-400 group-hover:text-gray-700 ml-4" />
-                  </button>
+                    }}
+                  />
 
                   <button
-                    type="button"
-                    className="flex-1 bg-white rounded-xl py-5 px-6 text-left flex items-center justify-between shadow-sm hover:bg-gray-50 transition cursor-pointer group"
+                    type="submit"
+                    className="absolute bottom-2 right-2 bg-black text-white px-6 py-3 rounded-xl text-lg font-semibold hover:bg-[#2c3552] transition shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    disabled={loading || !input.trim()}
                   >
-                    <div className="flex flex-col">
-                      <span className="text-base font-semibold text-gray-900">
-                        Choose knowledge source
-                      </span>
-
-                      <span className="text-sm text-gray-500">
-                        CFTC, MiCA, Fintech Law, and more
-                      </span>
-                    </div>
-                    <LuLayers className="text-2xl text-gray-400 group-hover:text-gray-700 ml-4" />
+                    {loading ? (
+                      <>
+                        <span className="loader-tomas inline-block w-4 h-4 border-2 border-white rounded-full animate-spin"></span>
+                      </>
+                    ) : (
+                      <span className="text-lg font-semibold">Talk Tomas</span>
+                    )}
                   </button>
                 </div>
-              )}
-            </form>
+
+                {!hasChatted && (
+                  <div
+                    className="flex flex-col md:flex-row gap-4 w-full mt-2 transition-all duration-500 ease-in-out opacity-100 translate-y-0"
+                    style={{
+                      transitionProperty: "opacity, transform",
+                      opacity: !hasChatted ? 1 : 0,
+                      transform: !hasChatted
+                        ? "translateY(0)"
+                        : "translateY(20px)",
+                    }}
+                  >
+                    <button
+                      type="button"
+                      className="flex-1 bg-white rounded-xl py-5 px-6 text-left flex items-center justify-between shadow-sm hover:bg-gray-50 transition cursor-pointer group"
+                    >
+                      <div className="flex flex-col">
+                        <span className="text-base font-semibold text-gray-900">
+                          Upload files
+                        </span>
+
+                        <span className="text-sm text-gray-500">
+                          Choose files from your computer or a Vault project
+                        </span>
+                      </div>
+                      <LuPaperclip className="text-2xl text-gray-400 group-hover:text-gray-700 ml-4" />
+                    </button>
+
+                    <button
+                      type="button"
+                      className="flex-1 bg-white rounded-xl py-5 px-6 text-left flex items-center justify-between shadow-sm hover:bg-gray-50 transition cursor-pointer group"
+                    >
+                      <div className="flex flex-col">
+                        <span className="text-base font-semibold text-gray-900">
+                          Choose knowledge source
+                        </span>
+
+                        <span className="text-sm text-gray-500">
+                          CFTC, MiCA, Fintech Law, and more
+                        </span>
+                      </div>
+                      <LuLayers className="text-2xl text-gray-400 group-hover:text-gray-700 ml-4" />
+                    </button>
+                  </div>
+                )}
+              </form>
+            )}
           </div>
         </div>
         {/* Panel lateral derecho para Case Facts */}

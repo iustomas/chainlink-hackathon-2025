@@ -35,6 +35,10 @@ export const conversationController = {
       };
     });
 
+    const price =
+      conversationHistoryComplete?.[conversationHistoryComplete.length - 1]
+        ?.price;
+
     return c.json({
       status: "success",
       message:
@@ -42,6 +46,7 @@ export const conversationController = {
       address: validationResult.address,
       conversation: conversationHistory,
       caseFacts: lastExtractedFacts,
+      ...(price !== undefined && price !== null && { price }),
     });
   },
 
