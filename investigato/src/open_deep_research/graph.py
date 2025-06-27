@@ -1,4 +1,7 @@
 import os
+print("[ENV] OPENAI_API_KEY:", os.getenv("OPENAI_API_KEY"))
+print("[ENV] TAVILY_API_KEY:", os.getenv("TAVILY_API_KEY"))
+
 
 from typing import Literal
 

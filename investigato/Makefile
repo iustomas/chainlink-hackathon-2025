@@ -1,12 +1,12 @@
 # ---------------------------------------------------------------------------
 # Config
 # ---------------------------------------------------------------------------
-PROJECT_ID          ?= favorable-tree-459616-i0
+GOOGLE_CLOUD_PROJECT_ID := $(shell grep '^GOOGLE_CLOUD_PROJECT_ID=' .env | cut -d '=' -f2)
 REGION              ?= us-central1
-RESEARCH_APP_NAME   ?= tomas-deep-research
+RESEARCH_APP_NAME   ?= investigato
 GIT_SHA             ?= $(shell git rev-parse --short HEAD)
 
-RESEARCH_IMAGE      := gcr.io/$(PROJECT_ID)/$(RESEARCH_APP_NAME):$(GIT_SHA)
+RESEARCH_IMAGE      := gcr.io/$(GOOGLE_CLOUD_PROJECT_ID)/$(RESEARCH_APP_NAME):$(GIT_SHA)
 
 # ---------------------------------------------------------------------------
 # Dev local

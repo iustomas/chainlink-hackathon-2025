@@ -1,0 +1,26 @@
+meta {
+  name: wait for deep research
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{url}}/runs/wait
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "assistant_id": "981a4fc6-5acf-44f9-997b-c665adc9433e",
+    "input": {
+      "messages": [
+        "como me hago mas inteligente"
+      ]
+    }
+  }
+}
