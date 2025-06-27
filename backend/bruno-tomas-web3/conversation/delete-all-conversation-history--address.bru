@@ -1,0 +1,15 @@
+meta {
+  name: /delete-all-conversation-history/:address
+  type: http
+  seq: 1
+}
+
+delete {
+  url: {{url}}/conversation/delete-all-conversation-history?address=0x6914c5b9ab9b49bCF84f980Ff773Bf2ae6186A6D
+  body: none
+  auth: inherit
+}
+
+params:query {
+  address: 0x6914c5b9ab9b49bCF84f980Ff773Bf2ae6186A6D
+}

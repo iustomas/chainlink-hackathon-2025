@@ -40,7 +40,7 @@ export class ConversationHistoryService {
       userMessage,
       agentResponse,
       caseFacts: extractedFacts,
-      actions: actions ?? [],              // <-- asegura que nunca sea undefined
+      actions: actions ?? [], // <-- asegura que nunca sea undefined
       sufficiencyScore: sufficiencyScore ?? 0,
       timestamp: Date.now(),
     };
@@ -63,6 +63,21 @@ export class ConversationHistoryService {
       .get();
 
     return snapshot.docs.map((doc) => doc.data() as ConversationEntry);
+  }
+
+  async deleteAllConversationHistory(userAddress: string): Promise<void> {
+    const snapshot = await this.firestore
+      .collection(this.collectionName)
+      .where("userAddress", "==", userAddress)
+      .get();
+
+    const batch = this.firestore.batch();
+
+    snapshot.docs.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+
+    await batch.commit();
   }
 }
 
