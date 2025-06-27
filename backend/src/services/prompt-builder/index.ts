@@ -217,6 +217,13 @@ export class PromptBuilderService {
     const cognitioSystemPromptPath = join(agentBasePath, "system-prompts/cognitio.md");
     const cognitioSystemPrompt = this.readFileSafely(cognitioSystemPromptPath) || "";
 
+    // Ruta al response format de Cognitio
+    const responseCognitioPath = join(agentBasePath, "responses/response-cognitio.md");
+    const responseCognitio = this.readFileSafely(responseCognitioPath) || "";
+
+    // Combina ambos archivos en el systemPrompt
+    const systemPrompt = `${cognitioSystemPrompt}\n\n${responseCognitio}`.trim();
+
     // Formatear el historial como transcripción
     const formattedTranscript = conversationHistory
       .map(turn => {
@@ -230,7 +237,7 @@ export class PromptBuilderService {
       .join('\n\n---\n\n');
 
     return {
-      systemPrompt: cognitioSystemPrompt,
+      systemPrompt,
       userMessage: formattedTranscript,
     };
   }
