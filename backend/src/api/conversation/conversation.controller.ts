@@ -4,6 +4,9 @@ import { Context } from "hono";
 // services
 import { conversationHistoryService } from "../../services/firestore/conversation-history.service.js";
 
+// validators
+import { validateAddressAndReturnResponse } from "./validators/conversation.validator.js";
+
 // controller
 export const conversationController = {
   /**
@@ -15,49 +18,21 @@ export const conversationController = {
     try {
       const address = c.req.query("address");
 
-      if (!address) {
-        return c.json(
-          {
-            status: "error",
-            message: "Address query parameter is required",
-          },
-          400
-        );
+      // Validate address and handle error response if needed
+      const validationResult = validateAddressAndReturnResponse(c, address);
+
+      if (!validationResult.isValid) {
+        return validationResult.response;
       }
 
-      // Validate EVM address format
-      if (!address.startsWith("0x") || address.length !== 42) {
-        return c.json(
-          {
-            status: "error",
-            message:
-              "Invalid EVM address format. Address must start with '0x' and be 42 characters long",
-            address,
-          },
-          400
-        );
-      }
-
-      // Additional validation: check if it's a valid hex string
-      const hexRegex = /^0x[a-fA-F0-9]{40}$/;
-      if (!hexRegex.test(address)) {
-        return c.json(
-          {
-            status: "error",
-            message:
-              "Invalid EVM address. Address must be a valid hexadecimal string",
-            address,
-          },
-          400
-        );
-      }
-
-      await conversationHistoryService.deleteAllConversationHistory(address);
+      await conversationHistoryService.deleteAllConversationHistory(
+        validationResult.address
+      );
 
       return c.json({
         status: "success",
         message: "All conversation history deleted successfully",
-        address,
+        address: validationResult.address,
         timestamp: new Date().toISOString(),
       });
     } catch (error) {
