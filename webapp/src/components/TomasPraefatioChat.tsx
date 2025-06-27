@@ -27,12 +27,25 @@ import { LuPaperclip, LuLayers } from "react-icons/lu";
 export default function TomasPraefatioChat() {
   type Message = { role: "user" | "assistant"; content: string };
 
+  type ConversationHistoryResponse = {
+    status: string;
+    message: string;
+    address: string;
+    conversation: Array<{
+      message: string;
+      response: string;
+      timestamp: number;
+    }>;
+    caseFacts: string[];
+  };
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [caseFacts, setCaseFacts] = useState<string[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
   const [hasChatted, setHasChatted] = useState(false);
+  const [isHistoricalData, setIsHistoricalData] = useState(false);
 
   const [showChat, setShowChat] = useState(false);
 
@@ -44,6 +57,11 @@ export default function TomasPraefatioChat() {
   // Menu and file input
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // Loading states
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingConversationHistory, setIsLoadingConversationHistory] =
+    useState(false);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -72,14 +90,57 @@ export default function TomasPraefatioChat() {
     }
   }, [hasChatted]);
 
-  const [isLoading, setIsLoading] = useState(true);
-
+  // Load conversation history when address is available
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 800);
+    if (!address) {
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 800);
+      return () => clearTimeout(timer);
+    }
 
-    return () => clearTimeout(timer);
+    const loadConversationHistory = async () => {
+      setIsLoadingConversationHistory(true);
+      try {
+        const response = await fetch(
+          `http://localhost:3000/conversation/get-conversation-history-and-last-extracted-facts?address=${address}`,
+          {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+
+        const data = await response.json();
+
+        if (
+          data.status === "success" &&
+          data.conversation &&
+          data.conversation.length > 0
+        ) {
+          // Convert conversation history to messages format
+          const conversationMessages: Message[] = [];
+          (data as ConversationHistoryResponse).conversation.forEach((conv) => {
+            conversationMessages.push({ role: "user", content: conv.message });
+            conversationMessages.push({
+              role: "assistant",
+              content: conv.response,
+            });
+          });
+
+          setMessages(conversationMessages);
+          setCaseFacts(data.caseFacts || []);
+          setHasChatted(true);
+          setIsHistoricalData(true);
+        }
+      } catch (error) {
+        console.error("Error loading conversation history:", error);
+      } finally {
+        setIsLoadingConversationHistory(false);
+        setIsLoading(false);
+      }
+    };
+
+    loadConversationHistory();
   }, [address]);
 
   const handleConnect = () => {
@@ -140,10 +201,14 @@ export default function TomasPraefatioChat() {
 
   const [showCaseFacts, setShowCaseFacts] = useState(true);
 
-  return isLoading ? (
+  return isLoading || isLoadingConversationHistory ? (
     <div className="flex flex-col items-center justify-center h-screen w-full text-gray-500 text-lg p-4 bg-white">
       <div className="flex flex-col items-center">
-        <span className="text-2xl font-bold mb-4">Checking wallet...</span>
+        <span className="text-2xl font-bold mb-4">
+          {isLoadingConversationHistory
+            ? "Loading your conversation history..."
+            : "Checking wallet..."}
+        </span>
         <span className="loader-tomas inline-block w-8 h-8 border-2 border-gray-400 rounded-full animate-spin"></span>
       </div>
     </div>
@@ -231,7 +296,11 @@ export default function TomasPraefatioChat() {
                         }}
                       >
                         {msg.role === "assistant" ? (
-                          <TypeWriter text={msg.content} speed={10} />
+                          isHistoricalData ? (
+                            msg.content
+                          ) : (
+                            <TypeWriter text={msg.content} speed={10} />
+                          )
                         ) : (
                           msg.content
                         )}
