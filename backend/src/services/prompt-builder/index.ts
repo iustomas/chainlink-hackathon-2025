@@ -218,7 +218,7 @@ export class PromptBuilderService {
     // 4. Formato de respuesta requerido
     const responseFormatPath = join(
       agentBasePath,
-      "responses/response-proposal.md"
+      "responses/response-praefatio-proposal.md"
     );
     const responseFormat = this.readFileSafely(responseFormatPath);
     if (responseFormat) {

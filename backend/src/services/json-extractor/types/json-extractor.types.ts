@@ -183,3 +183,49 @@ export enum MemoryRequestAction {
 export type SufficiencyScoreAction = `SET_SUFFICIENCY_SCORE:${number}`;
 
 export type PraefatioAction = MemoryRequestAction | SufficiencyScoreAction;
+
+/**
+ * Praefatio proposal JSON response structure
+ */
+export interface PraefatioProposalResponse {
+  client_response: string;
+  price: number;
+}
+
+/**
+ * Result of Praefatio proposal JSON extraction
+ */
+export interface PraefatioProposalExtractionResult {
+  /**
+   * Whether the extraction was successful
+   */
+  success: boolean;
+
+  /**
+   * The extracted Praefatio proposal response
+   */
+  data?: PraefatioProposalResponse;
+
+  /**
+   * Error message if extraction failed
+   */
+  error?: string;
+
+  /**
+   * Validation details
+   */
+  validation?: {
+    isValid: boolean;
+    errors?: string[];
+    warnings?: string[];
+  };
+
+  /**
+   * Metadata about the extraction process
+   */
+  metadata?: {
+    strategyUsed: ExtractionStrategy;
+    extractionTime: number;
+    responseStartsWithYellow: boolean;
+  };
+}

@@ -389,10 +389,16 @@ export default function TomasPraefatioChat() {
 
                 <button
                   type="submit"
-                  className="absolute bottom-2 right-2 bg-black text-white px-6 py-3 rounded-xl text-lg font-semibold hover:bg-[#2c3552] transition shadow-md cursor-pointer"
+                  className="absolute bottom-2 right-2 bg-black text-white px-6 py-3 rounded-xl text-lg font-semibold hover:bg-[#2c3552] transition shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                   disabled={loading || !input.trim()}
                 >
-                  <h1 className="text-lg font-semibold">Talk Tomas</h1>
+                  {loading ? (
+                    <>
+                      <span className="loader-tomas inline-block w-4 h-4 border-2 border-white rounded-full animate-spin"></span>
+                    </>
+                  ) : (
+                    <span className="text-lg font-semibold">Talk Tomas</span>
+                  )}
                 </button>
               </div>
 

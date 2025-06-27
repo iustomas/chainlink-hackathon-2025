@@ -9,6 +9,8 @@ import {
   PraefatioAction,
   PraefatioResponse,
   PraefatioExtractionResult,
+  PraefatioProposalResponse,
+  PraefatioProposalExtractionResult,
 } from "./types/json-extractor.types.js";
 
 /**
@@ -238,6 +240,123 @@ export class JsonExtractorService {
   }
 
   /**
+   * Extract Praefatio proposal JSON response from LLM text
+   * This is a specialized function for extracting the specific Praefatio proposal response format
+   * @param text - The LLM response text
+   * @returns Praefatio proposal extraction result with validation
+   */
+  public extractPraefatioProposalJson(
+    text: string
+  ): PraefatioProposalExtractionResult {
+    const startTime = Date.now();
+
+    try {
+      // Check if text is empty or whitespace only
+      if (!text || text.trim().length === 0) {
+        return {
+          success: false,
+          error: "Empty or whitespace-only text provided",
+          metadata: {
+            strategyUsed: ExtractionStrategy.AUTO,
+            extractionTime: Date.now() - startTime,
+            responseStartsWithYellow: false,
+          },
+        };
+      }
+
+      // Check if text contains proposal patterns
+      if (!this.hasProposalPattern(text)) {
+        return {
+          success: false,
+          error:
+            "Text does not contain expected proposal JSON patterns (client_response, price)",
+          metadata: {
+            strategyUsed: ExtractionStrategy.AUTO,
+            extractionTime: Date.now() - startTime,
+            responseStartsWithYellow: false,
+          },
+        };
+      }
+
+      // First, try to extract JSON using auto strategy
+      const extractionResult = this.extractJson(text, {
+        strategy: ExtractionStrategy.AUTO,
+        validateJson: true,
+      });
+
+      if (!extractionResult.success || !extractionResult.data) {
+        return {
+          success: false,
+          error: extractionResult.error || "Failed to extract JSON from text",
+          metadata: {
+            strategyUsed: ExtractionStrategy.AUTO,
+            extractionTime: Date.now() - startTime,
+            responseStartsWithYellow: false,
+          },
+        };
+      }
+
+      // Validate the extracted data matches proposal structure
+      const validation = this.validateProposalStructure(extractionResult.data);
+
+      if (!validation.isValid) {
+        return {
+          success: false,
+          error: `Invalid proposal structure: ${validation.errors?.join(", ")}`,
+          validation: {
+            isValid: false,
+            errors: validation.errors,
+          },
+          metadata: {
+            strategyUsed: ExtractionStrategy.AUTO,
+            extractionTime: Date.now() - startTime,
+            responseStartsWithYellow: false,
+          },
+        };
+      }
+
+      const proposalData = validation.data as PraefatioProposalResponse;
+
+      // Clean and normalize the data
+      const cleanedData = this.cleanProposalData(proposalData);
+      const warnings: string[] = [];
+
+      // Add warnings for potential issues
+      if (cleanedData.client_response.length === 0) {
+        warnings.push("client_response is empty after cleaning");
+      }
+
+      if (cleanedData.price < 0) {
+        warnings.push("price is negative, consider setting to 0");
+      }
+
+      return {
+        success: true,
+        data: cleanedData,
+        validation: {
+          isValid: true,
+          warnings: warnings.length > 0 ? warnings : undefined,
+        },
+        metadata: {
+          strategyUsed: ExtractionStrategy.AUTO,
+          extractionTime: Date.now() - startTime,
+          responseStartsWithYellow: false,
+        },
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Proposal extraction failed: ${error instanceof Error ? error.message : String(error)}`,
+        metadata: {
+          strategyUsed: ExtractionStrategy.AUTO,
+          extractionTime: Date.now() - startTime,
+          responseStartsWithYellow: false,
+        },
+      };
+    }
+  }
+
+  /**
    * Extract JSON from markdown code blocks
    * @param text - Text containing markdown code blocks
    * @returns Array of extracted JSON objects
@@ -391,22 +510,23 @@ export class JsonExtractorService {
 
     const cleanedActions: PraefatioAction[] = Array.isArray(data.actions)
       ? data.actions
-          .filter((action: any) =>
-            typeof action === "string" &&
-            action.trim().length > 0 &&
-            (
-              VALID_ACTIONS.includes(action.trim() as MemoryRequestAction) ||
-              /^SET_SUFFICIENCY_SCORE:\d+(\.\d+)?$/.test(action.trim())
-            )
+          .filter(
+            (action: any) =>
+              typeof action === "string" &&
+              action.trim().length > 0 &&
+              (VALID_ACTIONS.includes(action.trim() as MemoryRequestAction) ||
+                /^SET_SUFFICIENCY_SCORE:\d+(\.\d+)?$/.test(action.trim()))
           )
           .map((action: string) => action.trim() as PraefatioAction)
       : [];
 
-    const sufficiencyScoreAction = cleanedActions.find(a =>
-      typeof a === "string" && a.startsWith("SET_SUFFICIENCY_SCORE:")
+    const sufficiencyScoreAction = cleanedActions.find(
+      (a) => typeof a === "string" && a.startsWith("SET_SUFFICIENCY_SCORE:")
     );
     const sufficiency_score = sufficiencyScoreAction
-      ? parseFloat((sufficiencyScoreAction as SufficiencyScoreAction).split(":")[1])
+      ? parseFloat(
+          (sufficiencyScoreAction as SufficiencyScoreAction).split(":")[1]
+        )
       : undefined;
 
     return {
@@ -441,6 +561,62 @@ export class JsonExtractorService {
     ];
 
     return praefatioPatterns.some((pattern) => pattern.test(text));
+  }
+
+  /**
+   * Check if text contains proposal patterns
+   * @param text - Text to analyze
+   * @returns Whether the text likely contains proposal JSON
+   */
+  private hasProposalPattern(text: string): boolean {
+    const proposalPatterns = [/"client_response"\s*:/i, /"price"\s*:/i];
+
+    return proposalPatterns.some((pattern) => pattern.test(text));
+  }
+
+  /**
+   * Validate that the extracted data matches proposal structure
+   * @param data - Extracted data to validate
+   * @returns Validation result
+   */
+  private validateProposalStructure(data: any): JsonValidationResult {
+    const errors: string[] = [];
+
+    // Check if data is an object
+    if (typeof data !== "object" || data === null || Array.isArray(data)) {
+      errors.push("Data must be a JSON object");
+      return { isValid: false, errors };
+    }
+
+    // Check required top-level fields
+    if (typeof data.client_response !== "string") {
+      errors.push("client_response must be a string");
+    }
+
+    if (typeof data.price !== "number" || data.price < 0) {
+      errors.push("price must be a non-negative number");
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors: errors.length > 0 ? errors : undefined,
+      data: errors.length === 0 ? data : undefined,
+    };
+  }
+
+  /**
+   * Clean and normalize extracted proposal data
+   * @param data - Raw extracted data
+   * @returns Cleaned and normalized data
+   */
+  private cleanProposalData(data: any): PraefatioProposalResponse {
+    return {
+      client_response:
+        typeof data.client_response === "string"
+          ? data.client_response.trim()
+          : "",
+      price: typeof data.price === "number" && data.price >= 0 ? data.price : 0,
+    };
   }
 }
 

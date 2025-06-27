@@ -144,15 +144,28 @@ export const tomasController = {
 
       // Generate proposal if sufficiency score is high enough
       if (
-        typeof sufficiencyScore === "number" &&
-        sufficiencyScore > SUFFICIENCY_SCORE_THRESHOLD
+        // typeof sufficiencyScore === "number" &&
+        // sufficiencyScore >= SUFFICIENCY_SCORE_THRESHOLD
+        true
       ) {
+        console.log("Generating proposal");
+
         const proposalResponse = await tomasService.generateProposal(
           userAddress,
           messageWithPreviousConversation
         );
 
-        return c.json(proposalResponse);
+        const jsonExtractionResultProposal =
+          jsonExtractorService.extractPraefatioProposalJson(
+            proposalResponse.response
+          );
+
+        return c.json({
+          success: true,
+          response: jsonExtractionResultProposal.data?.client_response || "",
+          score: jsonExtractionResultProposal.data?.price || 0,
+          caseFacts: jsonExtractionResult.data?.case_facts || [],
+        });
       }
 
       // Save conversation to Firestore history
