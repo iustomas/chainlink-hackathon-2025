@@ -40,7 +40,7 @@ export class ConversationHistoryService {
       userMessage,
       agentResponse,
       caseFacts: extractedFacts,
-      actions: actions ?? [], // <-- asegura que nunca sea undefined
+      actions: actions ?? [],
       sufficiencyScore: sufficiencyScore ?? 0,
       timestamp: Date.now(),
     };

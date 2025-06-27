@@ -1,0 +1,15 @@
+meta {
+  name: get conversation history and last case facts
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{url}}/conversation/get-conversation-history-and-last-extracted-facts?address=0x6914c5b9ab9b49bCF84f980Ff773Bf2ae6186A6D
+  body: none
+  auth: inherit
+}
+
+params:query {
+  address: 0x6914c5b9ab9b49bCF84f980Ff773Bf2ae6186A6D
+}

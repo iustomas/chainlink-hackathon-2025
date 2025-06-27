@@ -28,6 +28,7 @@ export default function TomasPraefatioChat() {
   type Message = { role: "user" | "assistant"; content: string };
 
   const [messages, setMessages] = useState<Message[]>([]);
+  const [caseFacts, setCaseFacts] = useState<string[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -74,7 +75,6 @@ export default function TomasPraefatioChat() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simula un pequeño delay para mostrar el estado de carga
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 800);
@@ -88,6 +88,8 @@ export default function TomasPraefatioChat() {
     }
   };
 
+  console.log("caseFacts", caseFacts);
+
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || loading) return;
@@ -95,7 +97,7 @@ export default function TomasPraefatioChat() {
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setLoading(true);
-    // Marcar que el usuario ya chateó
+
     if (!hasChatted) setHasChatted(true);
 
     try {
@@ -113,6 +115,7 @@ export default function TomasPraefatioChat() {
           ...prev,
           { role: "assistant", content: data.response } as Message,
         ]);
+        setCaseFacts(data.caseFacts || []);
       } else {
         setMessages((prev) => [
           ...prev,
@@ -134,6 +137,8 @@ export default function TomasPraefatioChat() {
       setLoading(false);
     }
   };
+
+  const [showCaseFacts, setShowCaseFacts] = useState(true);
 
   return isLoading ? (
     <div className="flex flex-col items-center justify-center h-screen w-full text-gray-500 text-lg p-4 bg-white">
@@ -181,168 +186,213 @@ export default function TomasPraefatioChat() {
         </div>
       </div>
 
-      <div className="flex-1 px-[40px] flex flex-col min-h-0">
-        {showChat && (
-          <div
-            ref={messagesContainerRef}
-            className="flex-1 overflow-y-auto px-4 pt-4 pb-2 transition-all duration-500 ease-in-out opacity-100 translate-y-0"
-            style={{
-              transitionProperty: "opacity, transform",
-              opacity: showChat ? 1 : 0,
-              transform: showChat ? "translateY(0)" : "translateY(20px)",
-              minHeight: 0,
-              maxHeight: "100%",
-            }}
-          >
-            <div className="w-full max-w-4xl mx-auto">
-              {messages.map((msg, idx) => (
-                <div key={idx} className="flex w-full mb-6">
-                  {msg.role === "assistant" && (
-                    <div className="flex items-start mr-2">
+      <div className="flex-1 px-[40px] flex flex-row min-h-0">
+        {/* Chat principal */}
+        <div className="flex-1 flex flex-col min-h-0">
+          {showChat && (
+            <div
+              ref={messagesContainerRef}
+              className="flex-1 overflow-y-auto px-4 pt-4 pb-2 transition-all duration-500 ease-in-out opacity-100 translate-y-0"
+              style={{
+                transitionProperty: "opacity, transform",
+                opacity: showChat ? 1 : 0,
+                transform: showChat ? "translateY(0)" : "translateY(20px)",
+                minHeight: 0,
+                maxHeight: "100%",
+              }}
+            >
+              <div className="w-full max-w-4xl mx-auto">
+                {messages.map((msg, idx) => (
+                  <div key={idx} className="flex w-full mb-6">
+                    {msg.role === "assistant" && (
+                      <div className="flex items-start mr-2">
+                        <div
+                          className="w-10 h-10 rounded-full flex items-center justify-center bg-[#F4F4F4] text-black text-2xl font-bold select-none mt-3"
+                          style={{
+                            fontFamily: "var(--font-serif), Georgia, serif",
+                          }}
+                        >
+                          T
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex flex-col w-full">
                       <div
-                        className="w-10 h-10 rounded-full flex items-center justify-center bg-[#F4F4F4] text-black text-2xl font-bold select-none mt-3"
+                        className={`px-5 py-3 rounded-2xl text-base w-full ${
+                          msg.role === "user" ? "border" : "bg-white"
+                        }`}
                         style={{
-                          fontFamily: "var(--font-serif), Georgia, serif",
+                          background:
+                            msg.role === "user" ? "#FBFBF9" : undefined,
+                          borderColor:
+                            msg.role === "user" ? "#F0EEE7" : undefined,
+                          boxShadow: "none",
                         }}
                       >
-                        T
+                        {msg.role === "assistant" ? (
+                          <TypeWriter text={msg.content} speed={10} />
+                        ) : (
+                          msg.content
+                        )}
                       </div>
                     </div>
-                  )}
-
-                  <div className="flex flex-col w-full">
-                    <div
-                      className={`px-5 py-3 rounded-2xl text-base w-full ${
-                        msg.role === "user" ? "border" : "bg-white"
-                      }`}
-                      style={{
-                        background: msg.role === "user" ? "#FBFBF9" : undefined,
-                        borderColor:
-                          msg.role === "user" ? "#F0EEE7" : undefined,
-                        boxShadow: "none",
-                      }}
-                    >
-                      {msg.role === "assistant" ? (
-                        <TypeWriter text={msg.content} speed={10} />
-                      ) : (
-                        msg.content
-                      )}
-                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
 
-              {/* Loading state */}
-              {loading && <TomasIsThinking />}
+                {/* Loading state */}
+                {loading && <TomasIsThinking />}
 
-              <div ref={messagesEndRef} />
+                <div ref={messagesEndRef} />
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Recomendaciones solo si no ha chateado */}
-        {!hasChatted && (
+          {/* Recomendaciones solo si no ha chateado */}
+          {!hasChatted && (
+            <div
+              className="flex-1 flex flex-col justify-center transition-all duration-500 ease-in-out opacity-100 translate-y-0"
+              style={{
+                transitionProperty: "opacity, transform",
+                opacity: !hasChatted ? 1 : 0,
+                transform: !hasChatted ? "translateY(0)" : "translateY(20px)",
+              }}
+            >
+              <RecommendedToStart />
+              <RecommendedDocuments />
+            </div>
+          )}
+
+          {/* Input container ahora dentro del contenedor con padding */}
           <div
-            className="flex-1 flex flex-col justify-center transition-all duration-500 ease-in-out opacity-100 translate-y-0"
-            style={{
-              transitionProperty: "opacity, transform",
-              opacity: !hasChatted ? 1 : 0,
-              transform: !hasChatted ? "translateY(0)" : "translateY(20px)",
-            }}
+            className={`mx-auto bg-[#FBFBF9] rounded-xl shadow p-6 flex flex-col items-center transition-all duration-500 ease-in-out w-full${
+              hasChatted ? " max-w-4xl" : ""
+            } mb-8`}
           >
-            <RecommendedToStart />
-            <RecommendedDocuments />
-          </div>
-        )}
-
-        {/* Input container ahora dentro del contenedor con padding */}
-        <div
-          className={`mx-auto bg-[#FBFBF9] rounded-xl shadow p-6 flex flex-col items-center transition-all duration-500 ease-in-out w-full${
-            hasChatted ? " max-w-4xl" : ""
-          } mb-8`}
-        >
-          <form onSubmit={handleSend} className="w-full flex flex-col gap-4">
-            <div className="relative w-full">
-              <textarea
-                className="w-full resize-none rounded-2xl text-md focus:outline-none bg-transparent"
-                placeholder="Ask Tomas anything..."
-                rows={hasChatted ? 2 : 4}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                disabled={loading}
-                onKeyDown={(e) => {
-                  if (
-                    e.key === "Enter" &&
-                    !e.shiftKey &&
-                    !e.ctrlKey &&
-                    !e.metaKey
-                  ) {
-                    e.preventDefault();
-                    if (!loading && input.trim()) {
-                      handleSend(e as unknown as React.FormEvent);
+            <form onSubmit={handleSend} className="w-full flex flex-col gap-4">
+              <div className="relative w-full">
+                <textarea
+                  className="w-full resize-none rounded-2xl text-md focus:outline-none bg-transparent"
+                  placeholder="Ask Tomas anything..."
+                  rows={hasChatted ? 2 : 4}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  disabled={loading}
+                  onKeyDown={(e) => {
+                    if (
+                      e.key === "Enter" &&
+                      !e.shiftKey &&
+                      !e.ctrlKey &&
+                      !e.metaKey
+                    ) {
+                      e.preventDefault();
+                      if (!loading && input.trim()) {
+                        handleSend(e as unknown as React.FormEvent);
+                      }
+                    } else if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                      e.preventDefault();
+                      if (!loading && input.trim()) {
+                        handleSend(e as unknown as React.FormEvent);
+                      }
                     }
-                  } else if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-                    e.preventDefault();
-                    if (!loading && input.trim()) {
-                      handleSend(e as unknown as React.FormEvent);
-                    }
-                  }
-                }}
-              />
-
-              <button
-                type="submit"
-                className="absolute bottom-2 right-2 bg-black text-white px-6 py-3 rounded-xl text-lg font-semibold hover:bg-[#2c3552] transition shadow-md cursor-pointer"
-                disabled={loading || !input.trim()}
-              >
-                <h1 className="text-lg font-semibold">Talk Tomas</h1>
-              </button>
-            </div>
-
-            {!hasChatted && (
-              <div
-                className="flex flex-col md:flex-row gap-4 w-full mt-2 transition-all duration-500 ease-in-out opacity-100 translate-y-0"
-                style={{
-                  transitionProperty: "opacity, transform",
-                  opacity: !hasChatted ? 1 : 0,
-                  transform: !hasChatted ? "translateY(0)" : "translateY(20px)",
-                }}
-              >
-                <button
-                  type="button"
-                  className="flex-1 bg-white rounded-xl py-5 px-6 text-left flex items-center justify-between shadow-sm hover:bg-gray-50 transition cursor-pointer group"
-                >
-                  <div className="flex flex-col">
-                    <span className="text-base font-semibold text-gray-900">
-                      Upload files
-                    </span>
-
-                    <span className="text-sm text-gray-500">
-                      Choose files from your computer or a Vault project
-                    </span>
-                  </div>
-                  <LuPaperclip className="text-2xl text-gray-400 group-hover:text-gray-700 ml-4" />
-                </button>
+                  }}
+                />
 
                 <button
-                  type="button"
-                  className="flex-1 bg-white rounded-xl py-5 px-6 text-left flex items-center justify-between shadow-sm hover:bg-gray-50 transition cursor-pointer group"
+                  type="submit"
+                  className="absolute bottom-2 right-2 bg-black text-white px-6 py-3 rounded-xl text-lg font-semibold hover:bg-[#2c3552] transition shadow-md cursor-pointer"
+                  disabled={loading || !input.trim()}
                 >
-                  <div className="flex flex-col">
-                    <span className="text-base font-semibold text-gray-900">
-                      Choose knowledge source
-                    </span>
-
-                    <span className="text-sm text-gray-500">
-                      CFTC, MiCA, Fintech Law, and more
-                    </span>
-                  </div>
-                  <LuLayers className="text-2xl text-gray-400 group-hover:text-gray-700 ml-4" />
+                  <h1 className="text-lg font-semibold">Talk Tomas</h1>
                 </button>
               </div>
-            )}
-          </form>
+
+              {!hasChatted && (
+                <div
+                  className="flex flex-col md:flex-row gap-4 w-full mt-2 transition-all duration-500 ease-in-out opacity-100 translate-y-0"
+                  style={{
+                    transitionProperty: "opacity, transform",
+                    opacity: !hasChatted ? 1 : 0,
+                    transform: !hasChatted
+                      ? "translateY(0)"
+                      : "translateY(20px)",
+                  }}
+                >
+                  <button
+                    type="button"
+                    className="flex-1 bg-white rounded-xl py-5 px-6 text-left flex items-center justify-between shadow-sm hover:bg-gray-50 transition cursor-pointer group"
+                  >
+                    <div className="flex flex-col">
+                      <span className="text-base font-semibold text-gray-900">
+                        Upload files
+                      </span>
+
+                      <span className="text-sm text-gray-500">
+                        Choose files from your computer or a Vault project
+                      </span>
+                    </div>
+                    <LuPaperclip className="text-2xl text-gray-400 group-hover:text-gray-700 ml-4" />
+                  </button>
+
+                  <button
+                    type="button"
+                    className="flex-1 bg-white rounded-xl py-5 px-6 text-left flex items-center justify-between shadow-sm hover:bg-gray-50 transition cursor-pointer group"
+                  >
+                    <div className="flex flex-col">
+                      <span className="text-base font-semibold text-gray-900">
+                        Choose knowledge source
+                      </span>
+
+                      <span className="text-sm text-gray-500">
+                        CFTC, MiCA, Fintech Law, and more
+                      </span>
+                    </div>
+                    <LuLayers className="text-2xl text-gray-400 group-hover:text-gray-700 ml-4" />
+                  </button>
+                </div>
+              )}
+            </form>
+          </div>
         </div>
+        {/* Panel lateral derecho para Case Facts */}
+        {caseFacts.length > 0 && (
+          <div className="hidden lg:flex flex-col w-80 min-w-[320px] max-w-xs ml-6 mt-6 bg-white border border-gray-200 rounded-xl shadow-sm h-fit sticky top-8 self-start">
+            <button
+              className="flex items-center justify-between px-5 py-4 w-full text-left focus:outline-none select-none group"
+              onClick={() => setShowCaseFacts((prev) => !prev)}
+              aria-expanded={showCaseFacts}
+            >
+              <span className="font-semibold text-gray-800 text-lg">
+                Case Facts
+              </span>
+              <svg
+                className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${
+                  showCaseFacts ? "rotate-180" : "rotate-0"
+                }`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </button>
+            {showCaseFacts && (
+              <ol className="px-6 pb-4 list-decimal space-y-3 text-gray-700">
+                {caseFacts.map((fact, idx) => (
+                  <li key={idx} className="pl-1 text-base leading-relaxed">
+                    {fact}
+                  </li>
+                ))}
+              </ol>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Loader Tomas Spinner CSS */}

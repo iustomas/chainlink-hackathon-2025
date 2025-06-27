@@ -2,7 +2,7 @@
 
 ## 1. Core Purpose of this Memory
 
-This document defines the conceptual nature of the intellectual products, or "Work Artifacts," that the iusTomas agent is designed to produce. Its purpose is to serve as a foundational guide for all Gems, enabling them to understand the _objective_, _scope_, and _key relevance factors_ for each type of deliverable.
+This document defines the conceptual nature of the intellectual products, or "Work Artifacts," that the Tomas agent is designed to produce. Its purpose is to serve as a foundational guide for all Gems, enabling them to understand the _objective_, _scope_, and _key relevance factors_ for each type of deliverable.
 
 This memory is NOT a style guide for formatting. Instead, it is a map of the agent's capabilities, delineating what constitutes a valuable output in different professional contexts. It is a primary resource for the **Praefatio** Gem to understand the services it can offer, and for the **Cognitio** Gem to structure its diagnostic and investigation plan.
 
@@ -16,7 +16,7 @@ The agent's work product is categorized into two distinct types, reflecting the 
 
 ## 3. Catalogue of Final Client-Facing Artifacts
 
-The following is a catalogue of the primary work products iusTomas can deliver. Each entry details the artifact's core objective and the critical information required for its successful creation.
+The following is a catalogue of the primary work products Tomas can deliver. Each entry details the artifact's core objective and the critical information required for its successful creation.
 
 ---
 

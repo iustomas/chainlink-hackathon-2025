@@ -55,6 +55,7 @@ export class PromptBuilderService {
         agentBasePath,
         "system-prompts/praefatio.md"
       );
+
       const systemPrompt = this.readFileSafely(systemPromptPath);
       if (systemPrompt) {
         prompt += `System instructions:\n${systemPrompt}\n\n`;
@@ -83,7 +84,6 @@ export class PromptBuilderService {
       }
     }
 
-    // --- NUEVO: Agrega memorias dinámicamente según requestedMemories ---
     if (Array.isArray(config.requestedMemories)) {
       for (const memory of config.requestedMemories) {
         let memoryPath = "";
@@ -104,12 +104,16 @@ export class PromptBuilderService {
             memoryLabel = "Relevant questions for Praefatio";
             break;
           case "use_cases":
-            memoryPath = join(agentBasePath, "memories/use-cases-praefatio.md"); 
+            memoryPath = join(agentBasePath, "memories/use-cases-praefatio.md");
             memoryLabel = "Artifact use cases and limitations";
             break;
           case "semantic":
-            memoryPath = join(agentBasePath, "memories/semantinc-tomas-web3.md");
-            memoryLabel = "Your semantic memory contains the following knowledge";
+            memoryPath = join(
+              agentBasePath,
+              "memories/semantinc-tomas-web3.md"
+            );
+            memoryLabel =
+              "Your semantic memory contains the following knowledge";
             break;
           // Puedes agregar más casos según tus necesidades
           default:
@@ -125,28 +129,40 @@ export class PromptBuilderService {
     } else {
       // Lógica legacy: flags booleanos
       if (config.includeSemanticMemory) {
-        const semanticPath = join(agentBasePath, "memories/semantinc-tomas-web3.md");
+        const semanticPath = join(
+          agentBasePath,
+          "memories/semantinc-tomas-web3.md"
+        );
         const semantic = this.readFileSafely(semanticPath);
         if (semantic) {
           prompt += `Your semantic memory contains the following knowledge:\n${semantic}\n\n`;
         }
       }
       if (config.includeArtifacts) {
-        const artifactsPath = join(agentBasePath, "memories/artifacts-praefatio.md");
+        const artifactsPath = join(
+          agentBasePath,
+          "memories/artifacts-praefatio.md"
+        );
         const artifacts = this.readFileSafely(artifactsPath);
         if (artifacts) {
           prompt += `Available artifacts and templates:\n${artifacts}\n\n`;
         }
       }
       if (config.includeProposals) {
-        const proposalsPath = join(agentBasePath, "memories/proposals-praefatio.md");
+        const proposalsPath = join(
+          agentBasePath,
+          "memories/proposals-praefatio.md"
+        );
         const proposals = this.readFileSafely(proposalsPath);
         if (proposals) {
           prompt += `Proposal templates and structures:\n${proposals}\n\n`;
         }
       }
       if (config.includeRelevantQuestions) {
-        const relevantQuestionsPath = join(agentBasePath, "memories/relevant-questions.md");
+        const relevantQuestionsPath = join(
+          agentBasePath,
+          "memories/relevant-questions.md"
+        );
         const relevantQuestions = this.readFileSafely(relevantQuestionsPath);
         if (relevantQuestions) {
           prompt += `Relevant questions for Praefatio:\n${relevantQuestions}\n\n`;
@@ -159,7 +175,6 @@ export class PromptBuilderService {
       prompt += `Additional context:\n${config.customContext}\n\n`;
     }
 
-    console.log("Prompt generado:", prompt); // Para depuración
     return prompt.trim();
   }
 
@@ -179,21 +194,32 @@ export class PromptBuilderService {
     }
 
     // 2. Personalidad
-    const personalityPath = join(agentBasePath, "memories/personality-tomas-web3.md");
+    const personalityPath = join(
+      agentBasePath,
+      "memories/personality-tomas-web3.md"
+    );
     const personality = this.readFileSafely(personalityPath);
     if (personality) {
-      prompt += "--- PERSONALITY AND TONE GUIDELINES ---\n" + personality + "\n\n";
+      prompt +=
+        "--- PERSONALITY AND TONE GUIDELINES ---\n" + personality + "\n\n";
     }
 
     // 3. Reglas de negocio y lógica de proposal
-    const proposalRulesPath = join(agentBasePath, "memories/proposals-praefatio.md");
+    const proposalRulesPath = join(
+      agentBasePath,
+      "memories/proposals-praefatio.md"
+    );
     const proposalRules = this.readFileSafely(proposalRulesPath);
     if (proposalRules) {
-      prompt += "--- PROPOSAL BUSINESS LOGIC AND RULES ---\n" + proposalRules + "\n\n";
+      prompt +=
+        "--- PROPOSAL BUSINESS LOGIC AND RULES ---\n" + proposalRules + "\n\n";
     }
 
     // 4. Formato de respuesta requerido
-    const responseFormatPath = join(agentBasePath, "responses/response-proposal.md");
+    const responseFormatPath = join(
+      agentBasePath,
+      "responses/response-proposal.md"
+    );
     const responseFormat = this.readFileSafely(responseFormatPath);
     if (responseFormat) {
       prompt += "--- REQUIRED RESPONSE FORMAT ---\n" + responseFormat + "\n\n";
@@ -201,7 +227,8 @@ export class PromptBuilderService {
 
     // 5. Contexto de la conversación
     if (args.conversationContext) {
-      prompt += "--- CONVERSATION CONTEXT ---\n" + args.conversationContext + "\n\n";
+      prompt +=
+        "--- CONVERSATION CONTEXT ---\n" + args.conversationContext + "\n\n";
     }
 
     return prompt.trim();
@@ -212,14 +239,21 @@ export class PromptBuilderService {
    * @param conversationHistory - Array with all Praefatio conversation turns.
    * @returns An object containing the systemPrompt and userMessage (transcript).
    */
-  public buildCognitioPrompt(conversationHistory: any[]): { systemPrompt: string; userMessage: string } {
+  public buildCognitioPrompt(conversationHistory: any[]): {
+    systemPrompt: string;
+    userMessage: string;
+  } {
     // Ruta al system prompt de Cognitio
-    const cognitioSystemPromptPath = join(agentBasePath, "system-prompts/cognitio.md");
-    const cognitioSystemPrompt = this.readFileSafely(cognitioSystemPromptPath) || "";
+    const cognitioSystemPromptPath = join(
+      agentBasePath,
+      "system-prompts/cognitio.md"
+    );
+    const cognitioSystemPrompt =
+      this.readFileSafely(cognitioSystemPromptPath) || "";
 
     // Formatear el historial como transcripción
     const formattedTranscript = conversationHistory
-      .map(turn => {
+      .map((turn) => {
         try {
           const agentResponseJson = JSON.parse(turn.agentResponse);
           return `Usuario: ${turn.userMessage}\nAgente: ${agentResponseJson.client_response}`;
@@ -227,7 +261,7 @@ export class PromptBuilderService {
           return `Usuario: ${turn.userMessage}\nAgente: ${turn.agentResponse}`;
         }
       })
-      .join('\n\n---\n\n');
+      .join("\n\n---\n\n");
 
     return {
       systemPrompt: cognitioSystemPrompt,

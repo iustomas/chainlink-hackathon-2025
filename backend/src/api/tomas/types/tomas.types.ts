@@ -15,6 +15,7 @@ export interface TalkWithTomasResponse {
   response: string;
   userAddress: string;
   timestamp: string;
+  caseFacts?: string[];
 }
 
 export interface ScriptumRequest {

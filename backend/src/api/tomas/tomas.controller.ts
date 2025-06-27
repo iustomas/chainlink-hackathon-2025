@@ -170,6 +170,7 @@ export const tomasController = {
         response: clientResponse,
         userAddress: validatedBody.userAddress,
         timestamp: new Date().toISOString(),
+        caseFacts: jsonExtractionResult.data?.case_facts || [],
       };
 
       return c.json(response);

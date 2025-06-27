@@ -9,6 +9,42 @@ import { validateAddressAndReturnResponse } from "./validators/conversation.vali
 
 // controller
 export const conversationController = {
+  getConversationHistoryAndLastExtractedFacts: async (c: Context) => {
+    const address = c.req.query("address");
+
+    const validationResult = validateAddressAndReturnResponse(c, address);
+
+    if (!validationResult.isValid) {
+      return validationResult.response;
+    }
+
+    const conversationHistoryComplete =
+      await conversationHistoryService.getConversationHistory(
+        validationResult.address
+      );
+
+    const lastExtractedFacts =
+      conversationHistoryComplete[conversationHistoryComplete.length - 1]
+        .caseFacts;
+
+    const conversationHistory = conversationHistoryComplete.map((item) => {
+      return {
+        message: item.userMessage,
+        response: item.agentResponse,
+        timestamp: item.timestamp,
+      };
+    });
+
+    return c.json({
+      status: "success",
+      message:
+        "Conversation history and last extracted facts retrieved successfully",
+      address: validationResult.address,
+      conversation: conversationHistory,
+      caseFacts: lastExtractedFacts,
+    });
+  },
+
   /**
    * Deletes all conversation history for a specific user address.
    * @param c - Hono context
