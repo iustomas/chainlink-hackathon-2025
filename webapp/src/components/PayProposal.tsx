@@ -10,12 +10,49 @@ import Link from "next/link";
 interface PayProposalProps {
   price: number;
   onPay: () => void;
+  userAddress: string;
 }
 
 /**
  * PayProposal component for handling proposal payment
  */
-export default function PayProposal({ price, onPay }: PayProposalProps) {
+export default function PayProposal({
+  price,
+  onPay,
+  userAddress,
+}: PayProposalProps) {
+  const handlePayClick = async () => {
+    try {
+      // Call the scriptum endpoint
+      const response = await fetch("http://localhost:3000/tomas/scriptum", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userAddress: userAddress,
+          contractAddress: "0x4508b91ec39770c8457b7c9ab9b60c845b09d3dd", // IntakePayment contract address
+          timestamp: new Date().toISOString(),
+          escalateToHumanLawyer: false, // Default to false, can be made configurable later
+        }),
+      });
+
+      if (response.ok) {
+        console.log("Scriptum endpoint called successfully");
+        // Call the original onPay callback
+        onPay();
+      } else {
+        console.error("Failed to call scriptum endpoint:", response.statusText);
+        // Still call onPay to maintain the UI flow
+        onPay();
+      }
+    } catch (error) {
+      console.error("Error calling scriptum endpoint:", error);
+      // Still call onPay to maintain the UI flow
+      onPay();
+    }
+  };
+
   return (
     <div className="w-full flex flex-col items-center gap-4">
       <div className="text-center">
@@ -73,7 +110,7 @@ export default function PayProposal({ price, onPay }: PayProposalProps) {
           </div>
 
           <button
-            onClick={onPay}
+            onClick={handlePayClick}
             className="w-full bg-black text-white px-6 py-4 rounded-xl text-lg font-semibold hover:bg-[#2c3552] transition shadow-md cursor-pointer flex items-center justify-center gap-2"
           >
             <span>Pay Tomas</span>

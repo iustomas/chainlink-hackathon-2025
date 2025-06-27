@@ -144,9 +144,9 @@ export const tomasController = {
 
       // Generate proposal if sufficiency score is high enough
       if (
-        // typeof sufficiencyScore === "number" &&
-        // sufficiencyScore >= SUFFICIENCY_SCORE_THRESHOLD
-        true
+        typeof sufficiencyScore === "number" &&
+        sufficiencyScore >= SUFFICIENCY_SCORE_THRESHOLD
+        // true
       ) {
         console.log("Generating proposal");
 
@@ -304,8 +304,24 @@ export const tomasController = {
           );
         }
       }
+
+      // Return success response
+      return c.json({
+        success: true,
+        message: "Scriptum process initiated successfully",
+        userAddress: validatedBody.userAddress,
+        timestamp: new Date().toISOString(),
+      });
     } catch (error) {
       console.error("Error in scriptum:", error);
+
+      return c.json(
+        {
+          success: false,
+          error: "Internal server error",
+        },
+        500
+      );
     }
   },
 };

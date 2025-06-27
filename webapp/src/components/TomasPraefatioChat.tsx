@@ -3,6 +3,9 @@
 // react
 import React, { useState, useRef, useEffect } from "react";
 
+// next
+import Image from "next/image";
+
 // utils
 import { formatAddress } from "../../utils/format-address";
 
@@ -353,6 +356,41 @@ export default function TomasPraefatioChat() {
                   </div>
                 ))}
 
+                {/* Mostrar cuadro PDF proposal como último mensaje si hay proposalPrice */}
+                {proposalPrice !== null && (
+                  <div className="flex w-full mb-6">
+                    <div className="flex items-start mr-2">
+                      <div
+                        className="w-10 h-10 rounded-full flex items-center justify-center bg-[#F4F4F4] text-black text-2xl font-bold select-none mt-3"
+                        style={{
+                          fontFamily: "var(--font-serif), Georgia, serif",
+                        }}
+                      >
+                        T
+                      </div>
+                    </div>
+                    <div className="flex flex-col w-full">
+                      <div className="flex items-center gap-4 p-4 border border-gray-200 rounded-xl bg-white shadow-sm w-full max-w-md">
+                        <Image
+                          src="/assets/pdf.svg"
+                          alt="PDF icon"
+                          className="w-12 h-12 object-contain"
+                          width={48}
+                          height={48}
+                        />
+                        <div className="flex flex-col flex-1 min-w-0">
+                          <span className="text-lg font-semibold truncate">
+                            Proposal of Tomas
+                          </span>
+                          <span className="text-sm text-gray-500 truncate mt-1">
+                            PDF document · 0.12 MB
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Loading state */}
                 {loading && <TomasIsThinking />}
 
@@ -385,7 +423,11 @@ export default function TomasPraefatioChat() {
             }`}
           >
             {proposalPrice !== null ? (
-              <PayProposal price={proposalPrice} onPay={handlePayTomas} />
+              <PayProposal
+                price={proposalPrice}
+                onPay={handlePayTomas}
+                userAddress={address}
+              />
             ) : (
               // Show normal input form
               <form
