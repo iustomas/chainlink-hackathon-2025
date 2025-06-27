@@ -7,12 +7,14 @@ import {
   TalkWithTomasResponse,
   EscalateToLawyerRequest,
   EscalateToLawyerResponse,
+  ScriptumRequest,
 } from "./types/tomas.types.js";
 
 // validator input
 import {
   validateTalkWithTomasPraefatioRequest,
   validateEscalateToLawyerRequest,
+  validateScriptumRequest,
 } from "./validators/tomas.validator.js";
 
 // llm service
@@ -29,7 +31,10 @@ import { getEmailServiceManager } from "../../services/email/index.js";
 import { conversationHistoryService } from "../../services/firestore/conversation-history.service.js";
 
 // prompt builder service
-import { promptBuilderService, PromptType } from "../../services/prompt-builder/index.js";
+import {
+  promptBuilderService,
+  PromptType,
+} from "../../services/prompt-builder/index.js";
 
 // json extractor service
 import { jsonExtractorService } from "../../services/json-extractor/index.js";
@@ -69,7 +74,10 @@ export const tomasController = {
       const userAddress = validatedBody.userAddress;
       const message = validatedBody.message;
 
-      if (typeof message === "string" && message.toLowerCase().includes("ya pagué")) {
+      if (
+        typeof message === "string" &&
+        message.toLowerCase().includes("ya pagué")
+      ) {
         // Ahora sí, gatilla el método de Cognitio
         return await tomasController.generateCognitio(c, userAddress);
       } else {
@@ -103,7 +111,9 @@ export const tomasController = {
         ) {
           requestedMemories = lastTurn.actions
             .filter((action: string) => action.startsWith("REQUEST_MEMORY_"))
-            .map((action: string) => action.replace("REQUEST_MEMORY_", "").toLowerCase());
+            .map((action: string) =>
+              action.replace("REQUEST_MEMORY_", "").toLowerCase()
+            );
         }
 
         const systemPrompt = promptBuilderService.buildPraefatioPrompt({
@@ -117,10 +127,12 @@ export const tomasController = {
 
         // Build message with previous conversation and current user message
         const messageWithPreviousConversation =
-          (conversationHistory
-            .map((turn) => `User: ${turn.userMessage}\nTomas: ${turn.tomasReply || ""}`)
-            .join("\n")) +
-          `\nUser: ${validatedBody.message}`;
+          conversationHistory
+            .map(
+              (turn) =>
+                `User: ${turn.userMessage}\nTomas: ${turn.tomasReply || ""}`
+            )
+            .join("\n") + `\nUser: ${validatedBody.message}`;
 
         // 2. Llama al LLM usando ese prompt
         const PROVIDER = PROVIDERS.GEMINI;
@@ -258,22 +270,19 @@ export const tomasController = {
       response: proposalLlmResponse.content,
       userAddress,
       timestamp: new Date().toISOString(),
-      nextStep: "Esperando confirmación de pago. Por favor responde con 'ya pagué' cuando hayas realizado el pago para continuar con la generación del expediente digital.",
+      nextStep:
+        "Esperando confirmación de pago. Por favor responde con 'ya pagué' cuando hayas realizado el pago para continuar con la generación del expediente digital.",
     });
   },
 
   // Nuevo método para generar el expediente digital (Cognitio)
-  generateCognitio: async (
-    c: Context,
-    userAddress: string
-  ) => {
-    // Obtiene el historial completo de la conversación
-    const conversationHistory = await conversationHistoryService.getConversationHistory(userAddress);
+  generateCognitio: async (c: Context, userAddress: string) => {
+    const conversationHistory =
+      await conversationHistoryService.getConversationHistory(userAddress);
 
-    // Construye el prompt para Cognitio usando el promptBuilderService
-    const { systemPrompt, userMessage } = promptBuilderService.buildCognitioPrompt(conversationHistory);
+    const { systemPrompt, userMessage } =
+      promptBuilderService.buildCognitioPrompt(conversationHistory);
 
-    // Llama al LLM con el prompt de Cognitio
     const PROVIDER = PROVIDERS.GEMINI;
     const MODEL = MODELS.GEMINI_2_5_FLASH_PREVIEW_05_20;
 
@@ -286,34 +295,33 @@ export const tomasController = {
       PROVIDER
     );
 
-    // Log del output de Cognitio al final de la terminal
-    console.log("\n========== OUTPUT COGNITIO ==========\n", cognitioLlmResponse.content, "\n=====================================\n");
+    console.log(
+      "\n========== OUTPUT COGNITIO ==========\n",
+      cognitioLlmResponse.content,
+      "\n=====================================\n"
+    );
 
     return c.json({
       success: true,
       response: cognitioLlmResponse.content,
       userAddress,
       timestamp: new Date().toISOString(),
-      nextStep: "Expediente digital generado. Próximo paso: análisis investigativo.",
+      nextStep:
+        "Expediente digital generado. Próximo paso: análisis investigativo.",
     });
   },
 
-  // Tomas require help from Eugenio (Our human lawyer)
-  escalateToHumanLawyer: async (c: Context) => {
-    let body: EscalateToLawyerRequest | undefined;
+  scriptum: async (c: Context) => {
+    let body: ScriptumRequest | undefined;
 
     try {
       body = await c.req.json();
       const headers = c.req.header();
 
       // Validate request
-      const validationErrors = validateEscalateToLawyerRequest(body);
+      const validationErrors = validateScriptumRequest(body);
 
       if (validationErrors.length > 0) {
-        console.warn(
-          "[escalateToHumanLawyer] Validation failed:",
-          validationErrors
-        );
         return c.json(
           {
             success: false,
@@ -324,115 +332,42 @@ export const tomasController = {
         );
       }
 
-      // At this point, body is guaranteed to be defined and valid
-      const validatedBody = body as EscalateToLawyerRequest;
+      const validatedBody = body as ScriptumRequest;
 
       // Verify that the request comes from an authorized contract
-      if (
-        !contractVerificationService.verifyContractCall(validatedBody, headers)
-      ) {
-        return c.json(
-          {
-            success: false,
-            error: "Contract verification failed",
-            message:
-              "Only the authorized smart contract may access this endpoint",
-          },
-          403
-        );
-      }
+      // if (
+      //   !contractVerificationService.verifyContractCall(validatedBody, headers)
+      // ) {
+      //   return c.json(
+      //     {
+      //       success: false,
+      //       error: "Contract verification failed",
+      //       message:
+      //         "Only the authorized smart contract may access this endpoint",
+      //     },
+      //     403
+      //   );
+      // }
 
-      // Check for duplicate escalation requests using simple cache
-      const now = Date.now();
-      const cacheKey = `${validatedBody.userAddress}-${Math.floor(now / (60 * 1000))}`; // 1-minute window
+      if (validatedBody.escalateToHumanLawyer) {
+        // Send email to Eugenio (Our human lawyer)
+        const emailResult = await getEmailServiceManager().sendEscalationEmail({
+          userAddress: validatedBody.userAddress,
+        });
 
-      // Clean expired entries
-      for (const [key, value] of escalationCache.entries()) {
-        if (now - value.timestamp > CACHE_EXPIRATION_MS) {
-          escalationCache.delete(key);
+        // Log email result
+        if (emailResult.success) {
+          console.log(
+            `Escalation email sent successfully. Message ID: ${emailResult.messageId}`
+          );
+        } else {
+          console.error(
+            `Failed to send escalation email: ${emailResult.error}`
+          );
         }
       }
-
-      const existingEscalation = escalationCache.get(cacheKey);
-
-      if (existingEscalation) {
-        console.log(
-          `[escalateToHumanLawyer] Duplicate escalation detected for case ${validatedBody.userAddress}, returning existing escalation ID: ${existingEscalation.escalationId}`
-        );
-
-        const response: EscalateToLawyerResponse = {
-          success: true,
-          message: "TOMAS_REQUIRE_HELP",
-          escalationId: existingEscalation.escalationId,
-          timestamp: new Date().toISOString(),
-          emailSent: true, // Email was already sent for this escalation
-          emailMessageId: "duplicate-prevented",
-        };
-
-        return c.json(response);
-      }
-
-      // Generate unique escalation ID
-      const escalationId = `ESC-${validatedBody.userAddress}-${Date.now()}`;
-      const timestamp = new Date().toISOString();
-
-      // Register this escalation to prevent duplicates
-      escalationCache.set(cacheKey, {
-        escalationId,
-        timestamp: now,
-      });
-
-      console.log(
-        `[escalateToHumanLawyer] Registered escalation for case ${validatedBody.userAddress} with ID ${escalationId}`
-      );
-
-      // Send email to Eugenio (Our human lawyer)
-      const emailResult = await getEmailServiceManager().sendEscalationEmail({
-        userAddress: validatedBody.userAddress,
-        escalationId,
-        timestamp,
-      });
-
-      // Log email result
-      if (emailResult.success) {
-        console.log(
-          `Escalation email sent successfully. Message ID: ${emailResult.messageId}`
-        );
-      } else {
-        console.error(`Failed to send escalation email: ${emailResult.error}`);
-      }
-
-      const response: EscalateToLawyerResponse = {
-        success: true,
-        message: "TOMAS_REQUIRE_HELP",
-        escalationId,
-        timestamp,
-        emailSent: emailResult.success,
-        emailMessageId: emailResult.messageId,
-      };
-
-      return c.json(response);
     } catch (error) {
-      console.error("Error in escalateToLawyer:", error);
-
-      // Check if it's a JSON parse error
-      if (error instanceof SyntaxError && error.message.includes("JSON")) {
-        return c.json(
-          {
-            success: false,
-            error: "Invalid JSON: The request body must be valid JSON.",
-          },
-          400
-        );
-      }
-
-      return c.json(
-        {
-          success: false,
-          error: "Internal server error",
-        },
-        500
-      );
+      console.error("Error in scriptum:", error);
     }
   },
 };

@@ -7,8 +7,9 @@
   <img src="https://img.shields.io/badge/status-mvp-yellow">
 </p>
 
-**Investigato** is the intelligence-gathering heart of **Tomas**, the Web3 legal agent.  
-It performs automated deep research—using a prompt received from **Cognitio** (the intake module)—and produces a structured **Dossier** that feeds the next pipeline stage (`Respondeo`), where documents such as Terms & Conditions or DeFi-compliance reports are drafted.
+**Investigato** is the intelligence-gathering heart of **Tomas**, the Web3 legal agent.
+
+It performs automated deep research—using a prompt received from **Cognitio** and produces a structured **Dossier** that feeds the next pipeline stage **Respondeo**, where documents such as Terms & Conditions or DeFi-compliance reports are drafted.
 
 Think of **Investigato** as Tomas’s research brain: the lawyer’s reasoning engine that hunts down the latest jurisprudence, regulatory opinions, and comparative precedents—on-chain and off-chain alike—so every legal argument is built on fresh, well-substantiated evidence.
 

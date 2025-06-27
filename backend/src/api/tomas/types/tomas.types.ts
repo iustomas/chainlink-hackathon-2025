@@ -17,6 +17,13 @@ export interface TalkWithTomasResponse {
   timestamp: string;
 }
 
+export interface ScriptumRequest {
+  userAddress: string;
+  contractAddress: string;
+  timestamp: string;
+  escalateToHumanLawyer: boolean;
+}
+
 export interface EscalateToLawyerRequest {
   userAddress: string;
   contractAddress: string;

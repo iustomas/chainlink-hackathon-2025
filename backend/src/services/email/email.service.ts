@@ -96,12 +96,6 @@ class EmailServiceManager {
             <div class="value">
               <span class="label">Case ID:</span> ${data.userAddress}
             </div>
-            <div class="value">
-              <span class="label">Escalation ID:</span> ${data.escalationId}
-            </div>
-            <div class="value">
-              <span class="label">Date and Time:</span> ${new Date(data.timestamp).toLocaleString("es-ES")}
-            </div>            
           </div>
           
           <p style="margin-top: 20px; font-size: 14px; color: #6c757d;">
@@ -127,9 +121,7 @@ class EmailServiceManager {
         I have requested your assistance for a legal case that requires the intervention of a human lawyer.
 
         CASE DETAILS:
-        - Case ID: ${data.userAddress}
-        - Escalation ID: ${data.escalationId}
-        - Date and Time: ${new Date(data.timestamp).toLocaleString("es-ES")}
+        - Case ID: ${data.userAddress}        
 
         Please review this case and take the necessary actions.
 

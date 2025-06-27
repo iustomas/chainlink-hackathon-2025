@@ -12,10 +12,7 @@ tomasRoutes.post(
   tomasController.talkWithTomasPraefatio
 );
 
-// Tomas require help from Eugenio (Our human lawyer)
-tomasRoutes.post(
-  "/escalate-to-human-lawyer",
-  tomasController.escalateToHumanLawyer
-);
+// Scriptum (Cognitio + Investigato + Respondeo)
+tomasRoutes.post("/scriptum", tomasController.scriptum);
 
 export { tomasRoutes };

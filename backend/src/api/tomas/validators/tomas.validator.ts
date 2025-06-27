@@ -74,6 +74,34 @@ export const validateTalkWithTomasPraefatioRequest = (
   return errors;
 };
 
+export function validateScriptumRequest(body: any): string[] {
+  const errors: string[] = [];
+
+  if (!body) {
+    errors.push("Request body is required");
+  }
+
+  if (!body.userAddress) {
+    errors.push("userAddress is required");
+  }
+
+  if (!body.contractAddress || typeof body.contractAddress !== "string") {
+    errors.push("contractAddress is required and must be a string");
+  } else if (!/^0x[a-fA-F0-9]{40}$/.test(body.contractAddress)) {
+    errors.push("contractAddress must be a valid EVM address");
+  }
+
+  if (!body.timestamp || typeof body.timestamp !== "string") {
+    errors.push("timestamp is required and must be a string");
+  }
+
+  if (!body.escalateToHumanLawyer) {
+    errors.push("escalateToHumanLawyer is required");
+  }
+
+  return errors;
+}
+
 export function validateEscalateToLawyerRequest(body: any): string[] {
   const errors: string[] = [];
 

@@ -1,5 +1,5 @@
 // types
-import { EscalateToLawyerRequest } from "../../api/tomas/types/tomas.types.js";
+import { ScriptumRequest } from "../../api/tomas/types/tomas.types.js";
 
 /**
  * Service for verifying contract calls and signatures
@@ -23,7 +23,7 @@ export class ContractVerificationService {
    * @returns True if verification passes, false otherwise
    */
   public verifyContractCall(
-    request: EscalateToLawyerRequest,
+    request: ScriptumRequest,
     headers: Record<string, string | string[] | undefined>
   ): boolean {
     try {
