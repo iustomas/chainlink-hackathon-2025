@@ -5,15 +5,12 @@ import { Context } from "hono";
 import {
   TalkWithTomasRequest,
   TalkWithTomasResponse,
-  EscalateToLawyerRequest,
-  EscalateToLawyerResponse,
   ScriptumRequest,
 } from "./types/tomas.types.js";
 
 // validator input
 import {
   validateTalkWithTomasPraefatioRequest,
-  validateEscalateToLawyerRequest,
   validateScriptumRequest,
 } from "./validators/tomas.validator.js";
 
@@ -32,24 +29,22 @@ import { conversationHistoryService } from "../../services/firestore/conversatio
 
 // prompt builder service
 import {
-  promptBuilderService,
   PromptType,
+  promptBuilderService,
 } from "../../services/prompt-builder/index.js";
 
 // json extractor service
 import { jsonExtractorService } from "../../services/json-extractor/index.js";
 
-// Simple in-memory cache for escalation deduplication
-const escalationCache = new Map<
-  string,
-  { escalationId: string; timestamp: number }
->();
-const CACHE_EXPIRATION_MS = 5 * 60 * 1000; // 5 minutes
+// tomas service
+import { tomasService } from "../../services/tomas/index.js";
 
 // controller
 export const tomasController = {
   // talk with tomas praefatio
   talkWithTomasPraefatio: async (c: Context) => {
+    const SUFFICIENCY_SCORE_THRESHOLD = 0.75;
+
     let body: TalkWithTomasRequest | undefined;
 
     try {
@@ -72,128 +67,112 @@ export const tomasController = {
       // At this point, body is guaranteed to be defined and valid
       const validatedBody = body as TalkWithTomasRequest;
       const userAddress = validatedBody.userAddress;
-      const message = validatedBody.message;
 
+      // Get conversation history
+      const conversationHistory =
+        await conversationHistoryService.getConversationHistory(userAddress);
+
+      // --- NUEVA LÓGICA: solo el último turno ---
+      const lastTurn =
+        conversationHistory.length > 0
+          ? conversationHistory[conversationHistory.length - 1]
+          : null;
+
+      let caseFactsSummary = "";
       if (
-        typeof message === "string" &&
-        message.toLowerCase().includes("ya pagué")
+        lastTurn &&
+        Array.isArray(lastTurn.caseFacts) &&
+        lastTurn.caseFacts.length > 0
       ) {
-        // Ahora sí, gatilla el método de Cognitio
-        return await tomasController.generateCognitio(c, userAddress);
-      } else {
-        // Get conversation history
-        const conversationHistory =
-          await conversationHistoryService.getConversationHistory(userAddress);
-
-        // --- NUEVA LÓGICA: solo el último turno ---
-        const lastTurn =
-          conversationHistory.length > 0
-            ? conversationHistory[conversationHistory.length - 1]
-            : null;
-
-        let caseFactsSummary = "";
-        if (
-          lastTurn &&
-          Array.isArray(lastTurn.caseFacts) &&
-          lastTurn.caseFacts.length > 0
-        ) {
-          caseFactsSummary =
-            "--- SUMMARY OF THE CASE FROM PREVIOUS TURN ---\n" +
-            lastTurn.caseFacts.map((fact) => `- ${fact}`).join("\n");
-        }
-
-        // 1. Construye el prompt condicional ANTES de llamar al LLM
-        let requestedMemories: string[] = [];
-        if (
-          lastTurn &&
-          Array.isArray(lastTurn.actions) &&
-          lastTurn.actions.length > 0
-        ) {
-          requestedMemories = lastTurn.actions
-            .filter((action: string) => action.startsWith("REQUEST_MEMORY_"))
-            .map((action: string) =>
-              action.replace("REQUEST_MEMORY_", "").toLowerCase()
-            );
-        }
-
-        const systemPrompt = promptBuilderService.buildPraefatioPrompt({
-          promptType: PromptType.TOMAS_PRAEFATIO,
-          includePersonality: true,
-          includeSystemPrompt: true,
-          includeRelevantQuestions: true,
-          customContext: caseFactsSummary,
-          requestedMemories,
-        });
-
-        // Build message with previous conversation and current user message
-        const messageWithPreviousConversation =
-          conversationHistory
-            .map(
-              (turn) =>
-                `User: ${turn.userMessage}\nTomas: ${turn.tomasReply || ""}`
-            )
-            .join("\n") + `\nUser: ${validatedBody.message}`;
-
-        // 2. Llama al LLM usando ese prompt
-        const PROVIDER = PROVIDERS.GEMINI;
-        const MODEL = MODELS.GEMINI_2_5_FLASH_PREVIEW_05_20;
-
-        const llmResponse = await llmServiceManager.generateText(
-          {
-            prompt: messageWithPreviousConversation,
-            systemPrompt: systemPrompt,
-            model: MODEL,
-          },
-          PROVIDER
-        );
-
-        console.log("LLM RAW RESPONSE:", llmResponse.content);
-
-        // Extract Praefatio JSON from LLM response
-        const jsonExtractionResult = jsonExtractorService.extractPraefatioJson(
-          llmResponse.content
-        );
-
-        let clientResponse = jsonExtractionResult.data?.client_response || "";
-        const sufficiencyScore = jsonExtractionResult.data?.sufficiency_score;
-
-        // --- NUEVA LÓGICA: Si el score es alto, delega a generateProposal ---
-        if (typeof sufficiencyScore === "number" && sufficiencyScore > 0.75) {
-          return await tomasController.generateProposal(
-            c,
-            userAddress,
-            messageWithPreviousConversation
-          );
-        }
-
-        // Save conversation to Firestore history (solo praefatio)
-        await conversationHistoryService.addConversationAndExtractedFacts(
-          userAddress,
-          validatedBody.message,
-          jsonExtractionResult.data?.client_response || "",
-          jsonExtractionResult.data?.case_facts || [],
-          jsonExtractionResult.data?.actions || [],
-          jsonExtractionResult.data?.sufficiency_score
-        );
-
-        const prompt = promptBuilderService.buildPraefatioPrompt({
-          promptType: PromptType.TOMAS_PRAEFATIO,
-          includePersonality: true,
-          includeSystemPrompt: true,
-          includeRelevantQuestions: true,
-          customContext: caseFactsSummary,
-          requestedMemories,
-        });
-
-        const response: TalkWithTomasResponse = {
-          success: true,
-          response: clientResponse,
-          userAddress: validatedBody.userAddress,
-          timestamp: new Date().toISOString(),
-        };
-
-        return c.json(response);
+        caseFactsSummary =
+          "--- SUMMARY OF THE CASE FROM PREVIOUS TURN ---\n" +
+          lastTurn.caseFacts.map((fact) => `- ${fact}`).join("\n");
       }
+
+      // 1. Construye el prompt condicional ANTES de llamar al LLM
+      let requestedMemories: string[] = [];
+      if (
+        lastTurn &&
+        Array.isArray(lastTurn.actions) &&
+        lastTurn.actions.length > 0
+      ) {
+        requestedMemories = lastTurn.actions
+          .filter((action: string) => action.startsWith("REQUEST_MEMORY_"))
+          .map((action: string) =>
+            action.replace("REQUEST_MEMORY_", "").toLowerCase()
+          );
+      }
+
+      const systemPrompt = promptBuilderService.buildPraefatioPrompt({
+        promptType: PromptType.TOMAS_PRAEFATIO,
+        includePersonality: true,
+        includeSystemPrompt: true,
+        includeRelevantQuestions: true,
+        customContext: caseFactsSummary,
+        requestedMemories,
+      });
+
+      // Build message with previous conversation and current user message
+      const messageWithPreviousConversation =
+        conversationHistory
+          .map(
+            (turn) =>
+              `User: ${turn.userMessage}\nTomas: ${turn.tomasReply || ""}`
+          )
+          .join("\n") + `\nUser: ${validatedBody.message}`;
+
+      // 2. Llama al LLM usando ese prompt
+      const PROVIDER = PROVIDERS.GEMINI;
+      const MODEL = MODELS.GEMINI_2_5_FLASH_PREVIEW_05_20;
+
+      const llmResponse = await llmServiceManager.generateText(
+        {
+          prompt: messageWithPreviousConversation,
+          systemPrompt: systemPrompt,
+          model: MODEL,
+        },
+        PROVIDER
+      );
+
+      // Extract Praefatio JSON from LLM response
+      const jsonExtractionResult = jsonExtractorService.extractPraefatioJson(
+        llmResponse.content
+      );
+
+      let clientResponse = jsonExtractionResult.data?.client_response || "";
+      const sufficiencyScore = jsonExtractionResult.data?.sufficiency_score;
+
+      // Generate proposal if sufficiency score is high enough
+      if (
+        typeof sufficiencyScore === "number" &&
+        sufficiencyScore > SUFFICIENCY_SCORE_THRESHOLD
+      ) {
+        const proposalResponse = await tomasService.generateProposal(
+          userAddress,
+          messageWithPreviousConversation
+        );
+
+        return c.json(proposalResponse);
+      }
+
+      // Save conversation to Firestore history
+      await conversationHistoryService.addConversationAndExtractedFacts(
+        userAddress,
+        validatedBody.message,
+        jsonExtractionResult.data?.client_response || "",
+        jsonExtractionResult.data?.case_facts || [],
+        jsonExtractionResult.data?.actions || [],
+        jsonExtractionResult.data?.sufficiency_score
+      );
+
+      const response: TalkWithTomasResponse = {
+        success: true,
+        response: clientResponse,
+        userAddress: validatedBody.userAddress,
+        timestamp: new Date().toISOString(),
+      };
+
+      return c.json(response);
     } catch (error) {
       console.error("Error in talkWithTomasPraefatio:", error);
 
@@ -236,81 +215,7 @@ export const tomasController = {
     }
   },
 
-  // Nuevo método para generar la propuesta
-  generateProposal: async (
-    c: Context,
-    userAddress: string,
-    messageWithPreviousConversation: string
-  ) => {
-    const PROVIDER = PROVIDERS.GEMINI;
-    const MODEL = MODELS.GEMINI_2_5_FLASH_PREVIEW_05_20;
-
-    const proposalPrompt = promptBuilderService.buildProposalPrompt({
-      conversationContext: messageWithPreviousConversation,
-    });
-
-    const proposalLlmResponse = await llmServiceManager.generateText(
-      {
-        prompt: "",
-        systemPrompt: proposalPrompt,
-        model: MODEL,
-      },
-      PROVIDER
-    );
-
-    // Guardar la propuesta generada si es necesario aquí
-
-    // Espera la confirmación de pago ("ya pagué") en el siguiente mensaje del usuario
-    // Esto se logra devolviendo una respuesta que instruya al usuario a confirmar el pago,
-    // y el flujo principal (talkWithTomasPraefatio) debe estar preparado para detectar "ya pagué"
-    // en el siguiente mensaje y así avanzar a Cognitio.
-
-    return c.json({
-      success: true,
-      response: proposalLlmResponse.content,
-      userAddress,
-      timestamp: new Date().toISOString(),
-      nextStep:
-        "Esperando confirmación de pago. Por favor responde con 'ya pagué' cuando hayas realizado el pago para continuar con la generación del expediente digital.",
-    });
-  },
-
-  // Nuevo método para generar el expediente digital (Cognitio)
-  generateCognitio: async (c: Context, userAddress: string) => {
-    const conversationHistory =
-      await conversationHistoryService.getConversationHistory(userAddress);
-
-    const { systemPrompt, userMessage } =
-      promptBuilderService.buildCognitioPrompt(conversationHistory);
-
-    const PROVIDER = PROVIDERS.GEMINI;
-    const MODEL = MODELS.GEMINI_2_5_FLASH_PREVIEW_05_20;
-
-    const cognitioLlmResponse = await llmServiceManager.generateText(
-      {
-        prompt: userMessage,
-        systemPrompt: systemPrompt,
-        model: MODEL,
-      },
-      PROVIDER
-    );
-
-    console.log(
-      "\n========== OUTPUT COGNITIO ==========\n",
-      cognitioLlmResponse.content,
-      "\n=====================================\n"
-    );
-
-    return c.json({
-      success: true,
-      response: cognitioLlmResponse.content,
-      userAddress,
-      timestamp: new Date().toISOString(),
-      nextStep:
-        "Expediente digital generado. Próximo paso: análisis investigativo.",
-    });
-  },
-
+  // (Cognitio + Investigato + Respondeo)
   scriptum: async (c: Context) => {
     let body: ScriptumRequest | undefined;
 
@@ -348,6 +253,14 @@ export const tomasController = {
       //     403
       //   );
       // }
+
+      // TODO: Call Cognitio
+      // await tomasService.generateCognitio(
+      //   validatedBody.userAddress,
+      //   validatedBody.
+      // );
+
+      // TODO: Call Investigato
 
       if (validatedBody.escalateToHumanLawyer) {
         // Send email to Eugenio (Our human lawyer)
