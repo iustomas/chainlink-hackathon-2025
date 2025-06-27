@@ -24,14 +24,14 @@ export const conversationController = {
       );
 
     const lastExtractedFacts =
-      conversationHistoryComplete[conversationHistoryComplete.length - 1]
-        .caseFacts;
+      conversationHistoryComplete?.[conversationHistoryComplete.length - 1]
+        ?.caseFacts || [];
 
     const conversationHistory = conversationHistoryComplete.map((item) => {
       return {
-        message: item.userMessage,
-        response: item.agentResponse,
-        timestamp: item.timestamp,
+        message: item?.userMessage,
+        response: item?.agentResponse,
+        timestamp: item?.timestamp,
       };
     });
 

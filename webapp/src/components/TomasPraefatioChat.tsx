@@ -17,6 +17,7 @@ import TypeWriter from "./TypeWriter";
 import RecommendedToStart from "./RecommendedToStart";
 import RecommendedDocuments from "./RecommendedDocuments";
 import TomasIsThinking from "./TomasIsThinking";
+import CaseFacts from "./CaseFacts";
 
 // icons
 import { LuPaperclip, LuLayers } from "react-icons/lu";
@@ -48,6 +49,9 @@ export default function TomasPraefatioChat() {
   const [isHistoricalData, setIsHistoricalData] = useState(false);
 
   const [showChat, setShowChat] = useState(false);
+
+  // Case Facts expansion state
+  const [isCaseFactsExpanded, setIsCaseFactsExpanded] = useState(true);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -149,6 +153,10 @@ export default function TomasPraefatioChat() {
     }
   };
 
+  const handleCaseFactsToggle = (isExpanded: boolean) => {
+    setIsCaseFactsExpanded(isExpanded);
+  };
+
   console.log("caseFacts", caseFacts);
 
   const handleSend = async (e: React.FormEvent) => {
@@ -198,8 +206,6 @@ export default function TomasPraefatioChat() {
       setLoading(false);
     }
   };
-
-  const [showCaseFacts, setShowCaseFacts] = useState(true);
 
   return isLoading || isLoadingConversationHistory ? (
     <div className="flex flex-col items-center justify-center h-screen w-full text-gray-500 text-lg p-4 bg-white">
@@ -251,9 +257,17 @@ export default function TomasPraefatioChat() {
         </div>
       </div>
 
-      <div className="flex-1 px-[40px] flex flex-row min-h-0">
+      <div
+        className={`flex-1 px-[40px] flex flex-row min-h-0 transition-all duration-300 ease-in-out overflow-hidden ${
+          isCaseFactsExpanded ? "gap-8" : "gap-4"
+        }`}
+      >
         {/* Chat principal */}
-        <div className="flex-1 flex flex-col min-h-0">
+        <div
+          className={`flex-1 flex flex-col min-h-0 transition-all duration-300 ease-in-out mt-[20px] overflow-hidden ${
+            isCaseFactsExpanded ? "mr-8" : "mr-0"
+          }`}
+        >
           {showChat && (
             <div
               ref={messagesContainerRef}
@@ -266,7 +280,11 @@ export default function TomasPraefatioChat() {
                 maxHeight: "100%",
               }}
             >
-              <div className="w-full max-w-4xl mx-auto">
+              <div
+                className={`w-full max-w-4xl transition-all duration-300 ease-in-out ${
+                  isCaseFactsExpanded ? "ml-0" : "mx-auto"
+                }`}
+              >
                 {messages.map((msg, idx) => (
                   <div key={idx} className="flex w-full mb-6">
                     {msg.role === "assistant" && (
@@ -320,7 +338,7 @@ export default function TomasPraefatioChat() {
           {/* Recomendaciones solo si no ha chateado */}
           {!hasChatted && (
             <div
-              className="flex-1 flex flex-col justify-center transition-all duration-500 ease-in-out opacity-100 translate-y-0"
+              className="flex-1 flex flex-col justify-center transition-all duration-500 ease-in-out opacity-100 translate-y-0 overflow-y-auto"
               style={{
                 transitionProperty: "opacity, transform",
                 opacity: !hasChatted ? 1 : 0,
@@ -334,9 +352,11 @@ export default function TomasPraefatioChat() {
 
           {/* Input container ahora dentro del contenedor con padding */}
           <div
-            className={`mx-auto bg-[#FBFBF9] rounded-xl shadow p-6 flex flex-col items-center transition-all duration-500 ease-in-out w-full${
+            className={`bg-[#FBFBF9] rounded-xl shadow p-6 flex flex-col items-center transition-all duration-500 ease-in-out w-full flex-shrink-0${
               hasChatted ? " max-w-4xl" : ""
-            } mb-8`}
+            } mb-8 transition-all duration-300 ease-in-out ${
+              isCaseFactsExpanded ? "ml-0" : "mx-auto"
+            }`}
           >
             <form onSubmit={handleSend} className="w-full flex flex-col gap-4">
               <div className="relative w-full">
@@ -424,44 +444,7 @@ export default function TomasPraefatioChat() {
           </div>
         </div>
         {/* Panel lateral derecho para Case Facts */}
-        {caseFacts.length > 0 && (
-          <div className="hidden lg:flex flex-col w-80 min-w-[320px] max-w-xs ml-6 mt-6 bg-white border border-gray-200 rounded-xl shadow-sm h-fit sticky top-8 self-start">
-            <button
-              className="flex items-center justify-between px-5 py-4 w-full text-left focus:outline-none select-none group"
-              onClick={() => setShowCaseFacts((prev) => !prev)}
-              aria-expanded={showCaseFacts}
-            >
-              <span className="font-semibold text-gray-800 text-lg">
-                Case Facts
-              </span>
-              <svg
-                className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${
-                  showCaseFacts ? "rotate-180" : "rotate-0"
-                }`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </button>
-            {showCaseFacts && (
-              <ol className="px-6 pb-4 list-decimal space-y-3 text-gray-700">
-                {caseFacts.map((fact, idx) => (
-                  <li key={idx} className="pl-1 text-base leading-relaxed">
-                    {fact}
-                  </li>
-                ))}
-              </ol>
-            )}
-          </div>
-        )}
+        <CaseFacts caseFacts={caseFacts} onToggle={handleCaseFactsToggle} />
       </div>
 
       {/* Loader Tomas Spinner CSS */}
