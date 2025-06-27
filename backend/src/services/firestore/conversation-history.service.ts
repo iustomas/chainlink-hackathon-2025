@@ -3,6 +3,7 @@ import { Firestore } from "@google-cloud/firestore";
 
 // types
 import { ConversationEntry } from "./types/conversation-history.types.js";
+import { PraefatioAction } from "../json-extractor/types/json-extractor.types.js";
 
 /**
  * Service for handling conversation history in Firestore.
@@ -22,19 +23,25 @@ export class ConversationHistoryService {
    * @param userMessage - The message sent by the user (string)
    * @param agentResponse - The response from the agent (string)
    * @param extractedFacts - The extracted facts from the agent response ([string])
+   * @param actions - The actions to be taken (PraefatioAction[])
+   * @param sufficiencyScore - The sufficiency score (number, optional)
    * @returns Promise<void>
    */
   async addConversationAndExtractedFacts(
     userAddress: string,
     userMessage: string,
     agentResponse: string,
-    extractedFacts: string[]
+    extractedFacts: string[],
+    actions: PraefatioAction[],
+    sufficiencyScore?: number
   ): Promise<void> {
     const entry: ConversationEntry = {
       userAddress,
       userMessage,
       agentResponse,
       caseFacts: extractedFacts,
+      actions: actions ?? [],              // <-- asegura que nunca sea undefined
+      sufficiencyScore: sufficiencyScore ?? 0,
       timestamp: Date.now(),
     };
 

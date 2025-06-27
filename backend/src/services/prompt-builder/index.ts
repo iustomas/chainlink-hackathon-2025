@@ -42,11 +42,11 @@ export class PromptBuilderService {
   }
 
   /**
-   * Build a prompt based on the specified configuration
+   * Build a prompt for the Praefatio discovery phase.
    * @param config - Configuration object specifying which files to include and how to build the prompt
    * @returns The constructed prompt string
    */
-  public buildPrompt(config: PromptBuilderConfig): string {
+  public buildPraefatioPrompt(config: PromptBuilderConfig): string {
     let prompt = "";
 
     // Add system prompt first (tarea a cumplir)
@@ -83,39 +83,74 @@ export class PromptBuilderService {
       }
     }
 
-    // Add semantic memory if specified (extra)
-    if (config.includeSemanticMemory) {
-      const semanticPath = join(
-        agentBasePath,
-        "memories/semantinc-tomas-web3.md"
-      );
-      const semantic = this.readFileSafely(semanticPath);
-      if (semantic) {
-        prompt += `Your semantic memory contains the following knowledge:\n${semantic}\n\n`;
-      }
-    }
+    // --- NUEVO: Agrega memorias dinámicamente según requestedMemories ---
+    if (Array.isArray(config.requestedMemories)) {
+      for (const memory of config.requestedMemories) {
+        let memoryPath = "";
+        let memoryLabel = "";
 
-    // Add artifacts if specified (extra)
-    if (config.includeArtifacts) {
-      const artifactsPath = join(
-        agentBasePath,
-        "memories/artifacts-praefatio.md"
-      );
-      const artifacts = this.readFileSafely(artifactsPath);
-      if (artifacts) {
-        prompt += `Available artifacts and templates:\n${artifacts}\n\n`;
-      }
-    }
+        switch (memory) {
+          case "artifacts":
+            memoryPath = join(agentBasePath, "memories/artifacts-praefatio.md");
+            memoryLabel = "Available artifacts and templates";
+            break;
+          case "proposals":
+            memoryPath = join(agentBasePath, "memories/proposals-praefatio.md");
+            memoryLabel = "Proposal templates and structures";
+            break;
+          case "questions":
+          case "relevant-questions":
+            memoryPath = join(agentBasePath, "memories/relevant-questions.md");
+            memoryLabel = "Relevant questions for Praefatio";
+            break;
+          case "use_cases":
+            memoryPath = join(agentBasePath, "memories/use-cases-praefatio.md"); 
+            memoryLabel = "Artifact use cases and limitations";
+            break;
+          case "semantic":
+            memoryPath = join(agentBasePath, "memories/semantinc-tomas-web3.md");
+            memoryLabel = "Your semantic memory contains the following knowledge";
+            break;
+          // Puedes agregar más casos según tus necesidades
+          default:
+            console.warn(`[PromptBuilder] Memoria desconocida: ${memory}`);
+            continue;
+        }
 
-    // Add proposals if specified (extra)
-    if (config.includeProposals) {
-      const proposalsPath = join(
-        agentBasePath,
-        "memories/proposals-praefatio.md"
-      );
-      const proposals = this.readFileSafely(proposalsPath);
-      if (proposals) {
-        prompt += `Proposal templates and structures:\n${proposals}\n\n`;
+        const memoryContent = this.readFileSafely(memoryPath);
+        if (memoryContent) {
+          prompt += `${memoryLabel}:\n${memoryContent}\n\n`;
+        }
+      }
+    } else {
+      // Lógica legacy: flags booleanos
+      if (config.includeSemanticMemory) {
+        const semanticPath = join(agentBasePath, "memories/semantinc-tomas-web3.md");
+        const semantic = this.readFileSafely(semanticPath);
+        if (semantic) {
+          prompt += `Your semantic memory contains the following knowledge:\n${semantic}\n\n`;
+        }
+      }
+      if (config.includeArtifacts) {
+        const artifactsPath = join(agentBasePath, "memories/artifacts-praefatio.md");
+        const artifacts = this.readFileSafely(artifactsPath);
+        if (artifacts) {
+          prompt += `Available artifacts and templates:\n${artifacts}\n\n`;
+        }
+      }
+      if (config.includeProposals) {
+        const proposalsPath = join(agentBasePath, "memories/proposals-praefatio.md");
+        const proposals = this.readFileSafely(proposalsPath);
+        if (proposals) {
+          prompt += `Proposal templates and structures:\n${proposals}\n\n`;
+        }
+      }
+      if (config.includeRelevantQuestions) {
+        const relevantQuestionsPath = join(agentBasePath, "memories/relevant-questions.md");
+        const relevantQuestions = this.readFileSafely(relevantQuestionsPath);
+        if (relevantQuestions) {
+          prompt += `Relevant questions for Praefatio:\n${relevantQuestions}\n\n`;
+        }
       }
     }
 
@@ -124,35 +159,80 @@ export class PromptBuilderService {
       prompt += `Additional context:\n${config.customContext}\n\n`;
     }
 
-    // Add relevant questions for Praefatio if specified
-    if (config.includeRelevantQuestions) {  
-      const relevantQuestionsPath = join(
-        agentBasePath,
-        "memories/relevant-questions-praefatio.md"
-      );
-      const relevantQuestions = this.readFileSafely(relevantQuestionsPath);
-      if (relevantQuestions) {
-        prompt += `Relevant questions for Praefatio:\n${relevantQuestions}\n\n`;
-      }
+    console.log("Prompt generado:", prompt); // Para depuración
+    return prompt.trim();
+  }
+
+  /**
+   * Build a prompt for the Proposal phase.
+   * @param args - Object containing the conversation context.
+   * @returns The constructed proposal prompt string
+   */
+  public buildProposalPrompt(args: { conversationContext: string }): string {
+    let prompt = "";
+
+    // 1. System Prompt de Proposal
+    const systemPromptPath = join(agentBasePath, "system-prompts/proposal.md");
+    const systemPrompt = this.readFileSafely(systemPromptPath);
+    if (systemPrompt) {
+      prompt += systemPrompt + "\n\n";
+    }
+
+    // 2. Personalidad
+    const personalityPath = join(agentBasePath, "memories/personality-tomas-web3.md");
+    const personality = this.readFileSafely(personalityPath);
+    if (personality) {
+      prompt += "--- PERSONALITY AND TONE GUIDELINES ---\n" + personality + "\n\n";
+    }
+
+    // 3. Reglas de negocio y lógica de proposal
+    const proposalRulesPath = join(agentBasePath, "memories/proposals-praefatio.md");
+    const proposalRules = this.readFileSafely(proposalRulesPath);
+    if (proposalRules) {
+      prompt += "--- PROPOSAL BUSINESS LOGIC AND RULES ---\n" + proposalRules + "\n\n";
+    }
+
+    // 4. Formato de respuesta requerido
+    const responseFormatPath = join(agentBasePath, "responses/response-proposal.md");
+    const responseFormat = this.readFileSafely(responseFormatPath);
+    if (responseFormat) {
+      prompt += "--- REQUIRED RESPONSE FORMAT ---\n" + responseFormat + "\n\n";
+    }
+
+    // 5. Contexto de la conversación
+    if (args.conversationContext) {
+      prompt += "--- CONVERSATION CONTEXT ---\n" + args.conversationContext + "\n\n";
     }
 
     return prompt.trim();
   }
 
   /**
-   * Build a prompt for talking with Tomas Praefatio
-   * @returns The constructed prompt string
+   * Build a prompt for the Cognitio phase.
+   * @param conversationHistory - Array with all Praefatio conversation turns.
+   * @returns An object containing the systemPrompt and userMessage (transcript).
    */
-  public buildTomasPraefatioPrompt(): string {
-    return this.buildPrompt({
-      promptType: PromptType.TOMAS_PRAEFATIO,
-      includePersonality: true,
-      // includeSemanticMemory: true,
-      // includeArtifacts: true,
-      // includeProposals: true,
-      includeSystemPrompt: true,
-      includeRelevantQuestions: true,
-    });
+  public buildCognitioPrompt(conversationHistory: any[]): { systemPrompt: string; userMessage: string } {
+    // Ruta al system prompt de Cognitio
+    const cognitioSystemPromptPath = join(agentBasePath, "system-prompts/cognitio.md");
+    const cognitioSystemPrompt = this.readFileSafely(cognitioSystemPromptPath) || "";
+
+    // Formatear el historial como transcripción
+    const formattedTranscript = conversationHistory
+      .map(turn => {
+        try {
+          const agentResponseJson = JSON.parse(turn.agentResponse);
+          return `Usuario: ${turn.userMessage}\nAgente: ${agentResponseJson.client_response}`;
+        } catch (error) {
+          return `Usuario: ${turn.userMessage}\nAgente: ${turn.agentResponse}`;
+        }
+      })
+      .join('\n\n---\n\n');
+
+    return {
+      systemPrompt: cognitioSystemPrompt,
+      userMessage: formattedTranscript,
+    };
   }
 
   /**
@@ -170,5 +250,6 @@ export class PromptBuilderService {
   }
 }
 
+// This service is a singleton, so we use a static method to get the instance
 // Export singleton instance
 export const promptBuilderService = PromptBuilderService.getInstance();

@@ -4,6 +4,9 @@ import {
   JsonExtractionResult,
   JsonValidationResult,
   ExtractionStrategy,
+  MemoryRequestAction,
+  SufficiencyScoreAction,
+  PraefatioAction,
   PraefatioResponse,
   PraefatioExtractionResult,
 } from "./types/json-extractor.types.js";
@@ -379,6 +382,33 @@ export class JsonExtractorService {
    * @returns Cleaned and normalized data
    */
   private cleanPraefatioData(data: any): PraefatioResponse {
+    const VALID_ACTIONS = [
+      MemoryRequestAction.REQUEST_MEMORY_ARTIFACTS,
+      MemoryRequestAction.REQUEST_MEMORY_USE_CASES,
+      MemoryRequestAction.REQUEST_MEMORY_QUESTIONS,
+      MemoryRequestAction.REQUEST_MEMORY_PROPOSALS,
+    ];
+
+    const cleanedActions: PraefatioAction[] = Array.isArray(data.actions)
+      ? data.actions
+          .filter((action: any) =>
+            typeof action === "string" &&
+            action.trim().length > 0 &&
+            (
+              VALID_ACTIONS.includes(action.trim() as MemoryRequestAction) ||
+              /^SET_SUFFICIENCY_SCORE:\d+(\.\d+)?$/.test(action.trim())
+            )
+          )
+          .map((action: string) => action.trim() as PraefatioAction)
+      : [];
+
+    const sufficiencyScoreAction = cleanedActions.find(a =>
+      typeof a === "string" && a.startsWith("SET_SUFFICIENCY_SCORE:")
+    );
+    const sufficiency_score = sufficiencyScoreAction
+      ? parseFloat((sufficiencyScoreAction as SufficiencyScoreAction).split(":")[1])
+      : undefined;
+
     return {
       client_response:
         typeof data.client_response === "string"
@@ -391,6 +421,8 @@ export class JsonExtractorService {
             )
             .map((fact: string) => fact.trim())
         : [],
+      actions: cleanedActions,
+      sufficiency_score,
     };
   }
 
@@ -403,6 +435,7 @@ export class JsonExtractorService {
     const praefatioPatterns = [
       /"client_response"\s*:/i,
       /"case_facts"\s*:/i,
+      /"actions"\s*:/i,
       /\{\s*"client_response"/i,
       /"case_facts"\s*:\s*\[/i,
     ];

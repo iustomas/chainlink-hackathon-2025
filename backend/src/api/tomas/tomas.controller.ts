@@ -29,7 +29,7 @@ import { getEmailServiceManager } from "../../services/email/index.js";
 import { conversationHistoryService } from "../../services/firestore/conversation-history.service.js";
 
 // prompt builder service
-import { promptBuilderService } from "../../services/prompt-builder/index.js";
+import { promptBuilderService, PromptType } from "../../services/prompt-builder/index.js";
 
 // json extractor service
 import { jsonExtractorService } from "../../services/json-extractor/index.js";
@@ -66,67 +66,122 @@ export const tomasController = {
 
       // At this point, body is guaranteed to be defined and valid
       const validatedBody = body as TalkWithTomasRequest;
-
       const userAddress = validatedBody.userAddress;
+      const message = validatedBody.message;
 
-      // Get conversation history
-      const conversationHistory =
-        await conversationHistoryService.getConversationHistory(userAddress);
+      if (typeof message === "string" && message.toLowerCase().includes("ya pagué")) {
+        // Ahora sí, gatilla el método de Cognitio
+        return await tomasController.generateCognitio(c, userAddress);
+      } else {
+        // Get conversation history
+        const conversationHistory =
+          await conversationHistoryService.getConversationHistory(userAddress);
 
-      const messageWithPreviousConversation = `
-        User message: ${validatedBody.message}
-        \n\nPrevious conversation:\n${conversationHistory
-          .map((entry) => {
-            const facts =
-              entry.caseFacts && entry.caseFacts.length > 0
-                ? `Case facts:\n- ${entry.caseFacts.join("\n- ")}`
-                : "";
-            return `User message: ${entry.userMessage}\nTomas response: ${entry.agentResponse}${facts ? `\n${facts}` : ""}`;
-          })
-          .join("\n\n")}`;
+        // --- NUEVA LÓGICA: solo el último turno ---
+        const lastTurn =
+          conversationHistory.length > 0
+            ? conversationHistory[conversationHistory.length - 1]
+            : null;
 
-      // Build system prompt using the prompt builder service
-      const systemPrompt = promptBuilderService.buildTomasPraefatioPrompt();
+        let caseFactsSummary = "";
+        if (
+          lastTurn &&
+          Array.isArray(lastTurn.caseFacts) &&
+          lastTurn.caseFacts.length > 0
+        ) {
+          caseFactsSummary =
+            "--- SUMMARY OF THE CASE FROM PREVIOUS TURN ---\n" +
+            lastTurn.caseFacts.map((fact) => `- ${fact}`).join("\n");
+        }
 
-      console.log(
-        "messageWithPreviousConversation",
-        messageWithPreviousConversation
-      );
+        // 1. Construye el prompt condicional ANTES de llamar al LLM
+        let requestedMemories: string[] = [];
+        if (
+          lastTurn &&
+          Array.isArray(lastTurn.actions) &&
+          lastTurn.actions.length > 0
+        ) {
+          requestedMemories = lastTurn.actions
+            .filter((action: string) => action.startsWith("REQUEST_MEMORY_"))
+            .map((action: string) => action.replace("REQUEST_MEMORY_", "").toLowerCase());
+        }
 
-      // Generate LLM response
-      const PROVIDER = PROVIDERS.GEMINI;
-      const MODEL = MODELS.GEMINI_2_5_FLASH_PREVIEW_05_20;
+        const systemPrompt = promptBuilderService.buildPraefatioPrompt({
+          promptType: PromptType.TOMAS_PRAEFATIO,
+          includePersonality: true,
+          includeSystemPrompt: true,
+          includeRelevantQuestions: true,
+          customContext: caseFactsSummary,
+          requestedMemories,
+        });
 
-      const llmResponse = await llmServiceManager.generateText(
-        {
-          prompt: messageWithPreviousConversation,
-          systemPrompt: systemPrompt,
-          model: MODEL,
-        },
-        PROVIDER
-      );
+        // Build message with previous conversation and current user message
+        const messageWithPreviousConversation =
+          (conversationHistory
+            .map((turn) => `User: ${turn.userMessage}\nTomas: ${turn.tomasReply || ""}`)
+            .join("\n")) +
+          `\nUser: ${validatedBody.message}`;
 
-      // Extract Praefatio JSON from LLM response
-      const jsonExtractionResult = jsonExtractorService.extractPraefatioJson(
-        llmResponse.content
-      );
+        // 2. Llama al LLM usando ese prompt
+        const PROVIDER = PROVIDERS.GEMINI;
+        const MODEL = MODELS.GEMINI_2_5_FLASH_PREVIEW_05_20;
 
-      // Save conversation to Firestore history
-      await conversationHistoryService.addConversationAndExtractedFacts(
-        userAddress,
-        validatedBody.message,
-        jsonExtractionResult.data?.client_response || "",
-        jsonExtractionResult.data?.case_facts || []
-      );
+        const llmResponse = await llmServiceManager.generateText(
+          {
+            prompt: messageWithPreviousConversation,
+            systemPrompt: systemPrompt,
+            model: MODEL,
+          },
+          PROVIDER
+        );
 
-      const response: TalkWithTomasResponse = {
-        success: true,
-        response: jsonExtractionResult.data?.client_response || "",
-        userAddress: validatedBody.userAddress,
-        timestamp: new Date().toISOString(),
-      };
+        console.log("LLM RAW RESPONSE:", llmResponse.content);
 
-      return c.json(response);
+        // Extract Praefatio JSON from LLM response
+        const jsonExtractionResult = jsonExtractorService.extractPraefatioJson(
+          llmResponse.content
+        );
+
+        let clientResponse = jsonExtractionResult.data?.client_response || "";
+        const sufficiencyScore = jsonExtractionResult.data?.sufficiency_score;
+
+        // --- NUEVA LÓGICA: Si el score es alto, delega a generateProposal ---
+        if (typeof sufficiencyScore === "number" && sufficiencyScore > 0.75) {
+          return await tomasController.generateProposal(
+            c,
+            userAddress,
+            messageWithPreviousConversation
+          );
+        }
+
+        // Save conversation to Firestore history (solo praefatio)
+        await conversationHistoryService.addConversationAndExtractedFacts(
+          userAddress,
+          validatedBody.message,
+          jsonExtractionResult.data?.client_response || "",
+          jsonExtractionResult.data?.case_facts || [],
+          jsonExtractionResult.data?.actions || [],
+          jsonExtractionResult.data?.sufficiency_score
+        );
+
+        const prompt = promptBuilderService.buildPraefatioPrompt({
+          promptType: PromptType.TOMAS_PRAEFATIO,
+          includePersonality: true,
+          includeSystemPrompt: true,
+          includeRelevantQuestions: true,
+          customContext: caseFactsSummary,
+          requestedMemories,
+        });
+
+        const response: TalkWithTomasResponse = {
+          success: true,
+          response: clientResponse,
+          userAddress: validatedBody.userAddress,
+          timestamp: new Date().toISOString(),
+        };
+
+        return c.json(response);
+      }
     } catch (error) {
       console.error("Error in talkWithTomasPraefatio:", error);
 
@@ -167,6 +222,80 @@ export const tomasController = {
         500
       );
     }
+  },
+
+  // Nuevo método para generar la propuesta
+  generateProposal: async (
+    c: Context,
+    userAddress: string,
+    messageWithPreviousConversation: string
+  ) => {
+    const PROVIDER = PROVIDERS.GEMINI;
+    const MODEL = MODELS.GEMINI_2_5_FLASH_PREVIEW_05_20;
+
+    const proposalPrompt = promptBuilderService.buildProposalPrompt({
+      conversationContext: messageWithPreviousConversation,
+    });
+
+    const proposalLlmResponse = await llmServiceManager.generateText(
+      {
+        prompt: "",
+        systemPrompt: proposalPrompt,
+        model: MODEL,
+      },
+      PROVIDER
+    );
+
+    // Guardar la propuesta generada si es necesario aquí
+
+    // Espera la confirmación de pago ("ya pagué") en el siguiente mensaje del usuario
+    // Esto se logra devolviendo una respuesta que instruya al usuario a confirmar el pago,
+    // y el flujo principal (talkWithTomasPraefatio) debe estar preparado para detectar "ya pagué"
+    // en el siguiente mensaje y así avanzar a Cognitio.
+
+    return c.json({
+      success: true,
+      response: proposalLlmResponse.content,
+      userAddress,
+      timestamp: new Date().toISOString(),
+      nextStep: "Esperando confirmación de pago. Por favor responde con 'ya pagué' cuando hayas realizado el pago para continuar con la generación del expediente digital.",
+    });
+  },
+
+  // Nuevo método para generar el expediente digital (Cognitio)
+  generateCognitio: async (
+    c: Context,
+    userAddress: string
+  ) => {
+    // Obtiene el historial completo de la conversación
+    const conversationHistory = await conversationHistoryService.getConversationHistory(userAddress);
+
+    // Construye el prompt para Cognitio usando el promptBuilderService
+    const { systemPrompt, userMessage } = promptBuilderService.buildCognitioPrompt(conversationHistory);
+
+    // Llama al LLM con el prompt de Cognitio
+    const PROVIDER = PROVIDERS.GEMINI;
+    const MODEL = MODELS.GEMINI_2_5_FLASH_PREVIEW_05_20;
+
+    const cognitioLlmResponse = await llmServiceManager.generateText(
+      {
+        prompt: userMessage,
+        systemPrompt: systemPrompt,
+        model: MODEL,
+      },
+      PROVIDER
+    );
+
+    // Log del output de Cognitio al final de la terminal
+    console.log("\n========== OUTPUT COGNITIO ==========\n", cognitioLlmResponse.content, "\n=====================================\n");
+
+    return c.json({
+      success: true,
+      response: cognitioLlmResponse.content,
+      userAddress,
+      timestamp: new Date().toISOString(),
+      nextStep: "Expediente digital generado. Próximo paso: análisis investigativo.",
+    });
   },
 
   // Tomas require help from Eugenio (Our human lawyer)
