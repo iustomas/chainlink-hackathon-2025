@@ -107,3 +107,24 @@ a {
   scrollbar-width: thin;
   scrollbar-color: #d1d5db transparent;
 }
+
+/* File card hover effects */
+.file-card {
+  transition: all 0.2s ease-in-out;
+}
+
+.file-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Loading spinner */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
