@@ -43,7 +43,8 @@ import { tomasService } from "../../services/tomas/index.js";
 export const tomasController = {
   // talk with tomas praefatio
   talkWithTomasPraefatio: async (c: Context) => {
-    const SUFFICIENCY_SCORE_THRESHOLD = 0.75;
+    // Cambia el umbral a 0.9
+    const SUFFICIENCY_SCORE_THRESHOLD = 0.9;
 
     let body: TalkWithTomasRequest | undefined;
 
@@ -142,11 +143,10 @@ export const tomasController = {
       let clientResponse = jsonExtractionResult.data?.client_response || "";
       const sufficiencyScore = jsonExtractionResult.data?.sufficiency_score;
 
-      // Generate proposal if sufficiency score is high enough
+      // Solo genera la propuesta si el sufficiency score es >= 0.9
       if (
         typeof sufficiencyScore === "number" &&
         sufficiencyScore >= SUFFICIENCY_SCORE_THRESHOLD
-        // true
       ) {
         console.log("Generating proposal");
 
