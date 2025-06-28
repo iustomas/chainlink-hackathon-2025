@@ -1,0 +1,15 @@
+meta {
+  name: get user vault files
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{url}}/vault?userAddress=0x6914c5b9ab9b49bCF84f980Ff773Bf2ae6186A6D
+  body: none
+  auth: inherit
+}
+
+params:query {
+  userAddress: 0x6914c5b9ab9b49bCF84f980Ff773Bf2ae6186A6D
+}

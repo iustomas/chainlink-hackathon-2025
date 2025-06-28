@@ -4,3 +4,4 @@ export * from "./storage/google-cloud-storage.service.js";
 export * from "./email/index.js";
 export * from "./prompt-builder/index.js";
 export * from "./json-extractor/index.js";
+export * from "./firestore/vault.service.js";
