@@ -3,13 +3,16 @@
 // react
 import React, { useState } from "react";
 
+// next
+import Link from "next/link";
+
 // icons
 import {
   LuMessageCircle,
-  LuArchive,
+  LuFolderLock,
   // LuWorkflow,
-  LuClock,
-  LuLibraryBig,
+  // LuClock,
+  // LuLibraryBig,
   LuCircleHelp,
   LuSettings,
   LuChevronsLeft,
@@ -60,21 +63,25 @@ export default function Sidebar() {
         </div>
 
         <nav className="flex flex-col gap-1">
-          <SidebarOption
-            icon={<LuMessageCircle size={20} />}
-            label="Assistant"
-            isActive={selectedOption === "assistant"}
-            onSelect={() => setSelectedOption("assistant")}
-            collapsed={collapsed}
-          />
+          <Link href="/chat-provisory">
+            <SidebarOption
+              icon={<LuMessageCircle size={20} />}
+              label="Assistant"
+              isActive={selectedOption === "assistant"}
+              onSelect={() => setSelectedOption("assistant")}
+              collapsed={collapsed}
+            />
+          </Link>
 
-          <SidebarOption
-            icon={<LuArchive size={20} />}
-            label="Vault"
-            isActive={selectedOption === "vault"}
-            onSelect={() => setSelectedOption("vault")}
-            collapsed={collapsed}
-          />
+          <Link href="/vault">
+            <SidebarOption
+              icon={<LuFolderLock size={20} />}
+              label="Vault"
+              isActive={selectedOption === "vault"}
+              onSelect={() => setSelectedOption("vault")}
+              collapsed={collapsed}
+            />
+          </Link>
 
           {/* <SidebarOption
             icon={<LuWorkflow size={20} />}
@@ -84,21 +91,21 @@ export default function Sidebar() {
             collapsed={collapsed}
           /> */}
 
-          <SidebarOption
+          {/* <SidebarOption
             icon={<LuClock size={20} />}
             label="History"
             isActive={selectedOption === "history"}
             onSelect={() => setSelectedOption("history")}
             collapsed={collapsed}
-          />
+          /> */}
 
-          <SidebarOption
+          {/* <SidebarOption
             icon={<LuLibraryBig size={20} />}
             label="Library"
             isActive={selectedOption === "library"}
             onSelect={() => setSelectedOption("library")}
             collapsed={collapsed}
-          />
+          /> */}
         </nav>
       </div>
 

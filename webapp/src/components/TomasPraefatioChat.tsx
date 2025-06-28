@@ -6,9 +6,6 @@ import React, { useState, useRef, useEffect } from "react";
 // next
 import Image from "next/image";
 
-// utils
-import { formatAddress } from "../../utils/format-address";
-
 // wagmi
 import { useAccount } from "wagmi";
 
@@ -22,6 +19,7 @@ import RecommendedDocuments from "./RecommendedDocuments";
 import TomasIsThinking from "./TomasIsThinking";
 import CaseFacts from "./CaseFacts";
 import PayProposal from "./PayProposal";
+import DashboardHeader from "./DashboardHeader";
 
 // icons
 import { LuPaperclip, LuLayers } from "react-icons/lu";
@@ -263,28 +261,7 @@ export default function TomasPraefatioChat() {
   ) : (
     <div className="relative w-full h-full font-spectral bg-white flex flex-col">
       {/* Header section */}
-      <div className="flex-shrink-0 px-4 pt-4 pb-2 border-b border-gray-300 bg-white">
-        <div className="w-full pl-[20px] flex items-center justify-between">
-          <div>
-            <h2 className="text-md text-gray-600 mb-1">Assistant /</h2>
-            {/* TODO: change to a dynamic title */}
-            {/* <h1 className="text-lg text-black mb-3">
-                Proyecto de Desci para pelirrojas
-              </h1> */}
-          </div>
-
-          {address && (
-            <div className="flex items-center space-x-2 pr-2">
-              <span
-                className="px-4 py-1.5 rounded-[10px] font-semibold border border-black text-black bg-white cursor-default select-text"
-                style={{ fontSize: "14px", lineHeight: "20px" }}
-              >
-                {formatAddress(address as string)}
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
+      <DashboardHeader />
 
       <div
         className={`flex-1 px-[40px] flex flex-row min-h-0 transition-all duration-300 ease-in-out overflow-hidden ${
