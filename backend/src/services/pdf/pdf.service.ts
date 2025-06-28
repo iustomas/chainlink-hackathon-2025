@@ -206,10 +206,7 @@ export class PDFServiceImpl implements PDFService {
 
     // Add main content
     if (options.content) {
-      content.push({
-        text: this.processMarkdownText(options.content),
-        style: "content",
-      });
+      content.push(...this.processMarkdownText(options.content));
     }
 
     // Add links
@@ -332,20 +329,32 @@ export class PDFServiceImpl implements PDFService {
       const line = lines[i];
 
       if (line.trim() === "") {
-        // Empty line
-        result.push({ text: "", margin: [0, 5, 0, 5] });
+        // Empty line - add proper spacing
+        result.push({ text: "", margin: [0, 8, 0, 8] });
         continue;
       }
 
-      // Process headers (##, ###, ####)
-      if (line.startsWith("##")) {
+      // Process headers (#, ##, ###, ####)
+      if (line.match(/^#+\s/)) {
         const headerMatch = line.match(/^#+/);
         if (headerMatch) {
           const headerLevel = headerMatch[0].length;
           const headerText = line.replace(/^#+\s*/, "").trim();
 
-          const fontSize = headerLevel === 2 ? 18 : headerLevel === 3 ? 16 : 14;
-          const margin = headerLevel === 2 ? [0, 20, 0, 10] : [0, 15, 0, 8];
+          const fontSize =
+            headerLevel === 1
+              ? 24
+              : headerLevel === 2
+                ? 18
+                : headerLevel === 3
+                  ? 16
+                  : 14;
+          const margin =
+            headerLevel === 1
+              ? [0, 25, 0, 15]
+              : headerLevel === 2
+                ? [0, 20, 0, 10]
+                : [0, 15, 0, 8];
 
           result.push({
             text: headerText,
@@ -361,9 +370,22 @@ export class PDFServiceImpl implements PDFService {
       // Process lists (- item)
       if (line.trim().startsWith("-")) {
         const listItem = line.replace(/^-\s*/, "").trim();
+        const processedItem = this.processBoldText(listItem);
         result.push({
-          text: listItem,
-          margin: [20, 2, 0, 2],
+          text: processedItem,
+          margin: [20, 3, 0, 3],
+          fontSize: 11,
+        });
+        continue;
+      }
+
+      // Process lists (* item)
+      if (line.trim().startsWith("*")) {
+        const listItem = line.replace(/^\*\s*/, "").trim();
+        const processedItem = this.processBoldText(listItem);
+        result.push({
+          text: processedItem,
+          margin: [20, 3, 0, 3],
           fontSize: 11,
         });
         continue;
@@ -372,9 +394,10 @@ export class PDFServiceImpl implements PDFService {
       // Process numbered lists (1. item)
       if (/^\d+\.\s/.test(line.trim())) {
         const listItem = line.replace(/^\d+\.\s*/, "").trim();
+        const processedItem = this.processBoldText(listItem);
         result.push({
-          text: listItem,
-          margin: [20, 2, 0, 2],
+          text: processedItem,
+          margin: [20, 3, 0, 3],
           fontSize: 11,
         });
         continue;
@@ -382,21 +405,11 @@ export class PDFServiceImpl implements PDFService {
 
       // Process regular text with bold formatting
       const processedLine = this.processBoldText(line);
-      if (Array.isArray(processedLine)) {
-        // If it's an array of parts, create a text object with the parts
-        result.push({
-          text: processedLine,
-          fontSize: 11,
-          margin: [0, 2, 0, 2],
-        });
-      } else {
-        // If it's a single text object, add the formatting
-        result.push({
-          ...processedLine,
-          fontSize: 11,
-          margin: [0, 2, 0, 2],
-        });
-      }
+      result.push({
+        text: processedLine,
+        fontSize: 11,
+        margin: [0, 3, 0, 3],
+      });
     }
 
     return result;

@@ -38,6 +38,7 @@ import { jsonExtractorService } from "../../services/json-extractor/index.js";
 
 // tomas service
 import { tomasService } from "../../services/tomas/index.js";
+import { pdfService, tomasPdfService } from "@/services/pdf/index.js";
 
 // controller
 export const tomasController = {
@@ -126,14 +127,17 @@ export const tomasController = {
       const PROVIDER = PROVIDERS.GEMINI;
       const MODEL = MODELS.GEMINI_2_5_FLASH_PREVIEW_05_20;
 
-      const llmResponse = await llmServiceManager.generateText(
-        {
-          prompt: messageWithPreviousConversation,
-          systemPrompt: systemPrompt,
-          model: MODEL,
-        },
-        PROVIDER
-      );
+      // const llmResponse = await llmServiceManager.generateText(
+      //   {
+      //     prompt: messageWithPreviousConversation,
+      //     systemPrompt: systemPrompt,
+      //     model: MODEL,
+      //   },
+      //   PROVIDER
+      // );
+      const llmResponse = {
+        content: "hola",
+      };
 
       // Extract Praefatio JSON from LLM response
       const jsonExtractionResult = jsonExtractorService.extractPraefatioJson(
@@ -161,7 +165,15 @@ export const tomasController = {
             proposalResponse.response
           );
 
-        // Crear documento de proposal como PDF y agregarlo a la vault
+        // Generate filename with timestamp
+        const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+        const filename = `proposal-${userAddress}-${timestamp}.pdf`;
+
+        // Generate PDF proposal using Tomas service with cover page
+        const pdfResult = await tomasPdfService.generatePdfProposal({
+          content: jsonExtractionResultProposal.data?.client_response || "",
+          filename: filename,
+        });
 
         // Save conversation to Firestore history with the proposal price
         await conversationHistoryService.addConversationAndExtractedFacts(
@@ -179,6 +191,10 @@ export const tomasController = {
           response: jsonExtractionResultProposal.data?.client_response || "",
           price: jsonExtractionResultProposal.data?.price || 0,
           caseFacts: jsonExtractionResult.data?.case_facts || [],
+          pdfGenerated: true,
+          pdfFilename: filename,
+          pdfSize: pdfResult.size,
+          pdfPageCount: pdfResult.pageCount,
         });
       }
 
