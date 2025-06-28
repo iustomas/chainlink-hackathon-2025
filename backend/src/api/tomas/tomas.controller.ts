@@ -171,7 +171,7 @@ export const tomasController = {
 
         // Generate filename with timestamp for cloud storage
         const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-        const cloudFilename = `proposal-for-${formatAddress(userAddress)}.pdf`;
+        const cloudFilename = `proposal-for-${formatAddress(userAddress)}-${timestamp}.pdf`;
 
         // Generate PDF proposal using Tomas service with cover page
         const pdfResult = await tomasPdfService.generatePdfProposal({

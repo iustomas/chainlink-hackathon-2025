@@ -110,6 +110,15 @@ export class PDFServiceImpl implements PDFService {
         defaultStyle: {
           fontSize: options.fontSize || 12,
           lineHeight: options.lineHeight || 1.2,
+          alignment: "justify",
+        },
+        footer: function (currentPage: number, pageCount: number) {
+          return {
+            text: currentPage.toString(),
+            alignment: "center",
+            fontSize: 10,
+            margin: [0, 10, 0, 0],
+          };
         },
         styles: {
           coverTitle: {
@@ -131,6 +140,7 @@ export class PDFServiceImpl implements PDFService {
           content: {
             fontSize: options.fontSize || 12,
             lineHeight: options.lineHeight || 1.2,
+            alignment: "justify",
           },
         },
       };
@@ -284,6 +294,7 @@ export class PDFServiceImpl implements PDFService {
       fontSize: link.fontSize || 12,
       color: "blue",
       decoration: "underline",
+      alignment: "justify",
     }));
   }
 
@@ -362,6 +373,7 @@ export class PDFServiceImpl implements PDFService {
             bold: true,
             margin: margin,
             color: "#2c3e50",
+            alignment: "left",
           });
           continue;
         }
@@ -375,6 +387,7 @@ export class PDFServiceImpl implements PDFService {
           text: processedItem,
           margin: [20, 3, 0, 3],
           fontSize: 11,
+          alignment: "justify",
         });
         continue;
       }
@@ -387,6 +400,7 @@ export class PDFServiceImpl implements PDFService {
           text: processedItem,
           margin: [20, 3, 0, 3],
           fontSize: 11,
+          alignment: "justify",
         });
         continue;
       }
@@ -399,6 +413,7 @@ export class PDFServiceImpl implements PDFService {
           text: processedItem,
           margin: [20, 3, 0, 3],
           fontSize: 11,
+          alignment: "justify",
         });
         continue;
       }
@@ -409,6 +424,7 @@ export class PDFServiceImpl implements PDFService {
         text: processedLine,
         fontSize: 11,
         margin: [0, 3, 0, 3],
+        alignment: "justify",
       });
     }
 
