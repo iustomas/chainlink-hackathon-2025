@@ -97,6 +97,89 @@ export class TomasService {
         "Expediente digital generado. Próximo paso: análisis investigativo.",
     };
   }
+
+  async generateInvestigatoAnalysis(query: string) {
+    // Generate the investigative analysis using Investigato API
+    try {
+      // Step 1: Create assistant
+      const createAssistantResponse = await fetch(
+        `${process.env.INVESTIGATO_URL}/assistants`,
+        {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            graph_id: "open_deep_research_multi_agent",
+            if_exists: "raise",
+            name: "invetigato_research_multi_agent",
+            description:
+              "Investigato** is the intelligence-gathering heart of Tomas",
+          }),
+        }
+      );
+
+      if (!createAssistantResponse.ok) {
+        throw new Error(
+          `Failed to create assistant: ${createAssistantResponse.statusText}`
+        );
+      }
+
+      const assistantData = await createAssistantResponse.json();
+      const assistantId = assistantData.assistant_id;
+
+      if (!assistantId) {
+        throw new Error("No assistant_id received from Investigato API");
+      }
+
+      // Step 2: Run analysis with the query
+      const runAnalysisResponse = await fetch(
+        `${process.env.INVESTIGATO_URL}/runs/wait`,
+        {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            assistant_id: assistantId,
+            input: {
+              messages: [query],
+            },
+          }),
+        }
+      );
+
+      if (!runAnalysisResponse.ok) {
+        throw new Error(
+          `Failed to run analysis: ${runAnalysisResponse.statusText}`
+        );
+      }
+
+      const analysisData = await runAnalysisResponse.json();
+
+      console.log(
+        "\n========== OUTPUT INVESTIGATO ==========\n",
+        analysisData,
+        "\n========================================\n"
+      );
+
+      return {
+        success: true,
+        response: analysisData.output || analysisData,
+        assistantId,
+        timestamp: new Date().toISOString(),
+      };
+    } catch (error) {
+      console.error("Error in generateInvestigatoAnalysis:", error);
+
+      return {
+        success: false,
+        response: `Error in investigato analysis: ${error instanceof Error ? error.message : "Unknown error"}`,
+        assistantId: null,
+        timestamp: new Date().toISOString(),
+      };
+    }
+  }
 }
 
 // Singleton instance

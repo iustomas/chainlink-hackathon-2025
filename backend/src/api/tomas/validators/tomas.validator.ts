@@ -95,8 +95,13 @@ export function validateScriptumRequest(body: any): string[] {
     errors.push("timestamp is required and must be a string");
   }
 
-  if (!body.escalateToHumanLawyer) {
+  if (
+    body.escalateToHumanLawyer === undefined ||
+    body.escalateToHumanLawyer === null
+  ) {
     errors.push("escalateToHumanLawyer is required");
+  } else if (typeof body.escalateToHumanLawyer !== "boolean") {
+    errors.push("escalateToHumanLawyer must be a boolean");
   }
 
   return errors;

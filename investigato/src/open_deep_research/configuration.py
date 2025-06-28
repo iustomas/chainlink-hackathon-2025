@@ -40,10 +40,12 @@ class WorkflowConfiguration:
     summarization_model: str = "claude-3-5-haiku-latest"
     max_structured_output_retries: int = 3
     include_source_str: bool = False
+    max_tokens_per_source: int = 1000  # Maximum tokens per source to limit context
+    max_search_results: int = 3  # Maximum number of search results to include
     
     # Workflow-specific configuration
-    number_of_queries: int = 2 # Number of search queries to generate per iteration
-    max_search_depth: int = 2 # Maximum number of reflection + search iterations
+    number_of_queries: int = 1 # Number of search queries to generate per iteration
+    max_search_depth: int = 1 # Maximum number of reflection + search iterations
     planner_provider: str = "anthropic"
     planner_model: str = "claude-3-7-sonnet-latest"
     planner_model_kwargs: Optional[Dict[str, Any]] = None

@@ -1512,6 +1512,9 @@ async def select_and_execute_search(search_api: str, query_list: list[str], para
     Raises:
         ValueError: If an unsupported search API is specified
     """
+    # Get max_tokens_per_source from params or use default
+    max_tokens_per_source = params_to_pass.get('max_tokens_per_source', 1000)
+    
     if search_api == "tavily":
         # Tavily search tool used with both workflow and agent 
         # and returns a formatted source string
@@ -1536,7 +1539,7 @@ async def select_and_execute_search(search_api: str, query_list: list[str], para
     else:
         raise ValueError(f"Unsupported search API: {search_api}")
 
-    return deduplicate_and_format_sources(search_results, max_tokens_per_source=4000, deduplication_strategy="keep_first")
+    return deduplicate_and_format_sources(search_results, max_tokens_per_source=max_tokens_per_source, deduplication_strategy="keep_first")
 
 
 class Summary(BaseModel):

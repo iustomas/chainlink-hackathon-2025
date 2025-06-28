@@ -286,6 +286,10 @@ export const tomasController = {
       // );
 
       // TODO: Call Investigato
+      const investigatoResponse =
+        await tomasService.generateInvestigatoAnalysis(
+          "Porque los franceses se rindieron tan rapido en la segunda guerra mundial?"
+        );
 
       if (validatedBody.escalateToHumanLawyer) {
         // Send email to Eugenio (Our human lawyer)

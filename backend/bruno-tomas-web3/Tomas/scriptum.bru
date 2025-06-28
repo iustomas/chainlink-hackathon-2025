@@ -1,0 +1,20 @@
+meta {
+  name: scriptum
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{url}}/tomas/scriptum
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "userAddress": "0x6914c5b9ab9b49bCF84f980Ff773Bf2ae6186A6D",
+    "contractAddress": "0x6914c5b9ab9b49bCF84f980Ff773Bf2ae6186A6D",  
+    "timestamp": "10",
+    "escalateToHumanLawyer": false
+  }
+}
