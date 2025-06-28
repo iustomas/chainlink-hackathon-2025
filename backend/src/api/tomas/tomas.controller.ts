@@ -342,7 +342,45 @@ export const tomasController = {
       }
       console.log("Investigato Output:", investigatoResponse);
 
-      // --- Step 4: Escalate to Human Lawyer if requested ---
+      // --- Step 3b: Parsear el final_report del output de Investigato ---
+      let investigatoFinalReport = "";
+      try {
+        // Si investigatoResponse tiene la estructura esperada
+        if (
+          investigatoResponse &&
+          investigatoResponse.success &&
+          investigatoResponse.response &&
+          typeof investigatoResponse.response === "object" &&
+          "final_report" in investigatoResponse.response
+        ) {
+          investigatoFinalReport = investigatoResponse.response.final_report;
+        }
+      } catch (err) {
+        console.error("Error extracting final_report from Investigato output:", err);
+        investigatoFinalReport = "";
+      }
+      console.log("Investigato Final Report:", investigatoFinalReport);
+
+      // --- Step 4: Ejecutar Respondeo ---
+      // Respondeo recibe como input el final_report de investigato y el respondeoInput de cognitio
+      let respondeoResponse;
+      try {
+        console.log("Respondeo Input (finalReport):", investigatoFinalReport);
+        console.log("Respondeo Input (directive):", respondeoInput);
+        respondeoResponse = (investigatoFinalReport && respondeoInput)
+          ? await tomasService.generateRespondeoReply({
+              finalReport: investigatoFinalReport,
+              respondeoDirective: respondeoInput,
+            })
+          : null;
+        console.log("Respondeo Output:", respondeoResponse);
+      } catch (err) {
+        console.error("Error calling Respondeo module:", err);
+        respondeoResponse = null;
+      }
+      console.log("Respondeo Output:", respondeoResponse);
+
+      // --- Step 5: Escalate to Human Lawyer if requested ---
       if (validatedBody.escalateToHumanLawyer) {
         const emailResult = await getEmailServiceManager().sendEscalationEmail({
           userAddress: validatedBody.userAddress,
@@ -359,15 +397,17 @@ export const tomasController = {
         }
       }
 
-      // --- Step 5: Return success response, including cognitio and investigato output ---
-      // (NO MODIFICAR líneas 267 a 280, mantienen el gatillo y respuesta final)
+      // --- Step 6: Return success response, including cognitio, investigato y respondeo output ---
       return c.json({
         success: true,
-        message: "Scriptum process initiated successfully. Cognitio, Investigato phases executed.",
+        message: "Scriptum process completed. Cognitio, Investigato, Respondeo phases executed.",
         userAddress: validatedBody.userAddress,
         cognitioOutput: cognitioResponse.content,
         investigatoInput: investigatoInput,
         investigatoOutput: investigatoResponse,
+        investigatoFinalReport: investigatoFinalReport,
+        respondeoInput: respondeoInput,
+        respondeoOutput: respondeoResponse,
         timestamp: new Date().toISOString(),
       });
     } catch (error) {

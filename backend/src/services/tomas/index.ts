@@ -180,6 +180,41 @@ export class TomasService {
       };
     }
   }
+
+  async generateRespondeoReply({
+    finalReport,
+    respondeoDirective,
+  }: {
+    finalReport: string;
+    respondeoDirective: string;
+  }) {
+    // Aquí va la lógica para llamar al modelo o API de Respondeo
+    // Puedes ajustar el modelo y proveedor según tu stack
+    const PROVIDER = PROVIDERS.GEMINI;
+    const MODEL = MODELS.GEMINI_2_5_FLASH_PREVIEW_05_20;
+
+    // Construye el prompt para Respondeo usando el final_report y la directiva
+    const respondeoPrompt = promptBuilderService.buildRespondeoPrompt({
+      finalReport,
+      respondeoDirective,
+    });
+
+    // Llama al LLM o API correspondiente
+    const respondeoLlmResponse = await llmServiceManager.generateText(
+      {
+        prompt: "",
+        systemPrompt: respondeoPrompt,
+        model: MODEL,
+      },
+      PROVIDER
+    );
+
+    return {
+      success: true,
+      response: respondeoLlmResponse.content, // o el string generado
+      timestamp: new Date().toISOString(),
+    };
+  }
 }
 
 // Singleton instance

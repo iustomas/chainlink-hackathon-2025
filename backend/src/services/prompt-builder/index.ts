@@ -277,6 +277,21 @@ export class PromptBuilderService {
   }
 
   /**
+   * Build a prompt for the Respondeo phase.
+   * @param args - Object containing the final report and respondeo directive.
+   * @returns The constructed respondeo prompt string
+   */
+  public buildRespondeoPrompt(args: { finalReport: string; respondeoDirective: string }): string {
+    return `
+      ### Legal Analysis Report
+      ${args.finalReport}
+
+      ### Response Instructions
+      ${args.respondeoDirective}
+    `.trim();
+  }
+
+  /**
    * Read a file safely, returning null if the file doesn't exist or can't be read
    * @param filePath - Path to the file to read
    * @returns File contents or null if error
