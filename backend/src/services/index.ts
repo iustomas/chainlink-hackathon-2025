@@ -5,3 +5,4 @@ export * from "./email/index.js";
 export * from "./prompt-builder/index.js";
 export * from "./json-extractor/index.js";
 export * from "./firestore/vault.service.js";
+export * from "./pdf/index.js";

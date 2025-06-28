@@ -72,6 +72,7 @@ export const tomasController = {
       const conversationHistory =
         await conversationHistoryService.getConversationHistory(userAddress);
 
+      // TODO:Eliminar esta logica de ultimo turno
       // --- NUEVA LÓGICA: solo el último turno ---
       const lastTurn =
         conversationHistory.length > 0
@@ -144,9 +145,9 @@ export const tomasController = {
 
       // Generate proposal if sufficiency score is high enough
       if (
-        typeof sufficiencyScore === "number" &&
-        sufficiencyScore >= SUFFICIENCY_SCORE_THRESHOLD
-        // true
+        // typeof sufficiencyScore === "number" &&
+        // sufficiencyScore >= SUFFICIENCY_SCORE_THRESHOLD
+        true
       ) {
         console.log("Generating proposal");
 
@@ -159,6 +160,8 @@ export const tomasController = {
           jsonExtractorService.extractPraefatioProposalJson(
             proposalResponse.response
           );
+
+        // Crear documento de proposal como PDF y agregarlo a la vault
 
         // Save conversation to Firestore history with the proposal price
         await conversationHistoryService.addConversationAndExtractedFacts(
@@ -280,12 +283,12 @@ export const tomasController = {
       // }
 
       // --- Step 1: Ejecutar Cognitio ---
-      const conversationHistory = await conversationHistoryService.getConversationHistory(
-        validatedBody.userAddress
-      );
-      const { systemPrompt, userMessage } = promptBuilderService.buildCognitioPrompt(
-        conversationHistory
-      );
+      const conversationHistory =
+        await conversationHistoryService.getConversationHistory(
+          validatedBody.userAddress
+        );
+      const { systemPrompt, userMessage } =
+        promptBuilderService.buildCognitioPrompt(conversationHistory);
       const PROVIDER = PROVIDERS.GEMINI;
       const MODEL = MODELS.GEMINI_2_5_FLASH_PREVIEW_05_20;
 
@@ -304,11 +307,15 @@ export const tomasController = {
       let respondeoInput = "";
       try {
         let cognitioContent = cognitioResponse.content.trim();
-        if (cognitioContent.startsWith("```json") || cognitioContent.startsWith("```")) {
-          cognitioContent = cognitioContent.replace(/^```json/, "")
-                                           .replace(/^```/, "")
-                                           .replace(/```$/, "")
-                                           .trim();
+        if (
+          cognitioContent.startsWith("```json") ||
+          cognitioContent.startsWith("```")
+        ) {
+          cognitioContent = cognitioContent
+            .replace(/^```json/, "")
+            .replace(/^```/, "")
+            .replace(/```$/, "")
+            .trim();
         }
         // Intenta parsear como JSON
         try {
@@ -317,10 +324,18 @@ export const tomasController = {
           respondeoInput = cognitioJson.directive_for_respondeo || "";
         } catch (jsonErr) {
           // Si falla, extrae las directivas como texto plano usando regex
-          const matchInvestigato = cognitioContent.match(/"directive_for_investigato"\s*:\s*"([\s\S]*?)"\s*,?\s*"/);
-          const matchRespondeo = cognitioContent.match(/"directive_for_respondeo"\s*:\s*"([\s\S]*?)"\s*,?\s*"/);
-          investigatoInput = matchInvestigato ? matchInvestigato[1].replace(/\\"/g, '"') : "";
-          respondeoInput = matchRespondeo ? matchRespondeo[1].replace(/\\"/g, '"') : "";
+          const matchInvestigato = cognitioContent.match(
+            /"directive_for_investigato"\s*:\s*"([\s\S]*?)"\s*,?\s*"/
+          );
+          const matchRespondeo = cognitioContent.match(
+            /"directive_for_respondeo"\s*:\s*"([\s\S]*?)"\s*,?\s*"/
+          );
+          investigatoInput = matchInvestigato
+            ? matchInvestigato[1].replace(/\\"/g, '"')
+            : "";
+          respondeoInput = matchRespondeo
+            ? matchRespondeo[1].replace(/\\"/g, '"')
+            : "";
         }
       } catch (err) {
         console.error("Error extracting Cognitio output:", err);
@@ -356,7 +371,10 @@ export const tomasController = {
           investigatoFinalReport = investigatoResponse.response.final_report;
         }
       } catch (err) {
-        console.error("Error extracting final_report from Investigato output:", err);
+        console.error(
+          "Error extracting final_report from Investigato output:",
+          err
+        );
         investigatoFinalReport = "";
       }
       console.log("Investigato Final Report:", investigatoFinalReport);
@@ -367,12 +385,13 @@ export const tomasController = {
       try {
         console.log("Respondeo Input (finalReport):", investigatoFinalReport);
         console.log("Respondeo Input (directive):", respondeoInput);
-        respondeoResponse = (investigatoFinalReport && respondeoInput)
-          ? await tomasService.generateRespondeoReply({
-              finalReport: investigatoFinalReport,
-              respondeoDirective: respondeoInput,
-            })
-          : null;
+        respondeoResponse =
+          investigatoFinalReport && respondeoInput
+            ? await tomasService.generateRespondeoReply({
+                finalReport: investigatoFinalReport,
+                respondeoDirective: respondeoInput,
+              })
+            : null;
         console.log("Respondeo Output:", respondeoResponse);
       } catch (err) {
         console.error("Error calling Respondeo module:", err);
@@ -400,7 +419,8 @@ export const tomasController = {
       // --- Step 6: Return success response, including cognitio, investigato y respondeo output ---
       return c.json({
         success: true,
-        message: "Scriptum process completed. Cognitio, Investigato, Respondeo phases executed.",
+        message:
+          "Scriptum process completed. Cognitio, Investigato, Respondeo phases executed.",
         userAddress: validatedBody.userAddress,
         cognitioOutput: cognitioResponse.content,
         investigatoInput: investigatoInput,
