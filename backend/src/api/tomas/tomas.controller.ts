@@ -43,8 +43,7 @@ import { tomasService } from "../../services/tomas/index.js";
 export const tomasController = {
   // talk with tomas praefatio
   talkWithTomasPraefatio: async (c: Context) => {
-    // Cambia el umbral a 0.9
-    const SUFFICIENCY_SCORE_THRESHOLD = 0.9;
+    const SUFFICIENCY_SCORE_THRESHOLD = 0.75;
 
     let body: TalkWithTomasRequest | undefined;
 
@@ -143,10 +142,11 @@ export const tomasController = {
       let clientResponse = jsonExtractionResult.data?.client_response || "";
       const sufficiencyScore = jsonExtractionResult.data?.sufficiency_score;
 
-      // Solo genera la propuesta si el sufficiency score es >= 0.9
+      // Generate proposal if sufficiency score is high enough
       if (
         typeof sufficiencyScore === "number" &&
         sufficiencyScore >= SUFFICIENCY_SCORE_THRESHOLD
+        // true
       ) {
         console.log("Generating proposal");
 
@@ -279,25 +279,75 @@ export const tomasController = {
       //   );
       // }
 
-      // TODO: Call Cognitio
-      // await tomasService.generateCognitio(
-      //   validatedBody.userAddress,
-      //   validatedBody.
-      // );
+      // --- Step 1: Ejecutar Cognitio ---
+      const conversationHistory = await conversationHistoryService.getConversationHistory(
+        validatedBody.userAddress
+      );
+      const { systemPrompt, userMessage } = promptBuilderService.buildCognitioPrompt(
+        conversationHistory
+      );
+      const PROVIDER = PROVIDERS.GEMINI;
+      const MODEL = MODELS.GEMINI_2_5_FLASH_PREVIEW_05_20;
 
-      // TODO: Call Investigato
-      const investigatoResponse =
-        await tomasService.generateInvestigatoAnalysis(
-          "Porque los franceses se rindieron tan rapido en la segunda guerra mundial?"
-        );
+      const cognitioResponse = await llmServiceManager.generateText(
+        {
+          prompt: userMessage,
+          systemPrompt: systemPrompt,
+          model: MODEL,
+        },
+        PROVIDER
+      );
+      console.log("Cognitio Output:", cognitioResponse.content);
 
+      // --- Step 2: Parsear output de Cognitio para extraer input de Investigato y Respondeo ---
+      let investigatoInput = "";
+      let respondeoInput = "";
+      try {
+        let cognitioContent = cognitioResponse.content.trim();
+        if (cognitioContent.startsWith("```json") || cognitioContent.startsWith("```")) {
+          cognitioContent = cognitioContent.replace(/^```json/, "")
+                                           .replace(/^```/, "")
+                                           .replace(/```$/, "")
+                                           .trim();
+        }
+        // Intenta parsear como JSON
+        try {
+          const cognitioJson = JSON.parse(cognitioContent);
+          investigatoInput = cognitioJson.directive_for_investigato || "";
+          respondeoInput = cognitioJson.directive_for_respondeo || "";
+        } catch (jsonErr) {
+          // Si falla, extrae las directivas como texto plano usando regex
+          const matchInvestigato = cognitioContent.match(/"directive_for_investigato"\s*:\s*"([\s\S]*?)"\s*,?\s*"/);
+          const matchRespondeo = cognitioContent.match(/"directive_for_respondeo"\s*:\s*"([\s\S]*?)"\s*,?\s*"/);
+          investigatoInput = matchInvestigato ? matchInvestigato[1].replace(/\\"/g, '"') : "";
+          respondeoInput = matchRespondeo ? matchRespondeo[1].replace(/\\"/g, '"') : "";
+        }
+      } catch (err) {
+        console.error("Error extracting Cognitio output:", err);
+        investigatoInput = "";
+        respondeoInput = "";
+      }
+      console.log("Investigato Input:", investigatoInput);
+      console.log("Respondeo Input:", respondeoInput);
+
+      // --- Step 3: Ejecutar Investigato ---
+      let investigatoResponse;
+      try {
+        investigatoResponse = investigatoInput
+          ? await tomasService.generateInvestigatoAnalysis(investigatoInput)
+          : null;
+      } catch (err) {
+        console.error("Error calling Investigato module:", err);
+        investigatoResponse = null;
+      }
+      console.log("Investigato Output:", investigatoResponse);
+
+      // --- Step 4: Escalate to Human Lawyer if requested ---
       if (validatedBody.escalateToHumanLawyer) {
-        // Send email to Eugenio (Our human lawyer)
         const emailResult = await getEmailServiceManager().sendEscalationEmail({
           userAddress: validatedBody.userAddress,
         });
 
-        // Log email result
         if (emailResult.success) {
           console.log(
             `Escalation email sent successfully. Message ID: ${emailResult.messageId}`
@@ -309,11 +359,15 @@ export const tomasController = {
         }
       }
 
-      // Return success response
+      // --- Step 5: Return success response, including cognitio and investigato output ---
+      // (NO MODIFICAR líneas 267 a 280, mantienen el gatillo y respuesta final)
       return c.json({
         success: true,
-        message: "Scriptum process initiated successfully",
+        message: "Scriptum process initiated successfully. Cognitio, Investigato phases executed.",
         userAddress: validatedBody.userAddress,
+        cognitioOutput: cognitioResponse.content,
+        investigatoInput: investigatoInput,
+        investigatoOutput: investigatoResponse,
         timestamp: new Date().toISOString(),
       });
     } catch (error) {
