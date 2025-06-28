@@ -97,25 +97,30 @@ export default function Vault() {
 
   const getFileIconComponent = (fileType: string) => {
     switch (fileType.toLowerCase()) {
+      case "application/pdf":
       case "pdf":
         return <Image src="/assets/pdf.svg" alt="PDF" width={32} height={32} />;
 
       case "doc":
       case "docx":
         return <LuFileText className="w-8 h-8 text-blue-500" />;
+
       case "jpg":
       case "jpeg":
       case "png":
       case "gif":
       case "svg":
         return <LuImage className="w-8 h-8 text-green-500" />;
+
       case "mp4":
       case "avi":
       case "mov":
         return <LuVideo className="w-8 h-8 text-purple-500" />;
+
       case "mp3":
       case "wav":
         return <LuMusic className="w-8 h-8 text-orange-500" />;
+
       default:
         return <LuFile className="w-8 h-8 text-gray-500" />;
     }
@@ -249,12 +254,13 @@ export default function Vault() {
                 {vaultData.files.length === 0 ? (
                   <div className="flex-1 flex flex-col justify-center items-center text-gray-500">
                     <div className="text-6xl mb-4 text-gray-400">
-                      <LuFolder className="w-24 h-24" />
+                      <LuFolder className="w-12 h-12" />
                     </div>
+
                     <h3 className="text-xl font-semibold mb-2">No files yet</h3>
+
                     <p className="text-center max-w-md">
-                      Your vault is empty. Upload your first document to get
-                      started.
+                      Your vault is empty. Talk to Tomas to get started.
                     </p>
                   </div>
                 ) : (
@@ -269,6 +275,7 @@ export default function Vault() {
                           <div className="flex items-center justify-center w-12 h-12">
                             {getFileIconComponent(file.type)}
                           </div>
+
                           <div className="flex space-x-1">
                             <button
                               onClick={(e) => {
