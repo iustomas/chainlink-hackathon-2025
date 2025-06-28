@@ -1,11 +1,14 @@
 "use client";
 
 // react
-import React from "react";
+import React, { useState } from "react";
 
 // next
 import Image from "next/image";
 import Link from "next/link";
+
+// react icons
+import { LuChevronDown, LuChevronUp } from "react-icons/lu";
 
 interface PayProposalProps {
   price: number;
@@ -14,15 +17,22 @@ interface PayProposalProps {
 }
 
 /**
- * PayProposal component for handling proposal payment
+ * PayProposal component for handling proposal payment with collapse/expand functionality
  */
 export default function PayProposal({
   price,
   onPay,
   userAddress,
 }: PayProposalProps) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
   const handlePayClick = async () => {
+    if (isLoading) return;
+
+    setIsLoading(true);
     try {
+      // TODO: change this to interact with the contract
       // Call the scriptum endpoint
       const response = await fetch("http://localhost:3000/tomas/scriptum", {
         method: "POST",
@@ -31,89 +41,142 @@ export default function PayProposal({
         },
         body: JSON.stringify({
           userAddress: userAddress,
-          contractAddress: "0x4508b91ec39770c8457b7c9ab9b60c845b09d3dd", // IntakePayment contract address
+          contractAddress: "0x4508b91ec39770c8457b7c9ab9b60c845b09d3dd",
           timestamp: new Date().toISOString(),
-          escalateToHumanLawyer: false, // Default to false, can be made configurable later
+          escalateToHumanLawyer: false,
         }),
       });
 
       if (response.ok) {
         console.log("Scriptum endpoint called successfully");
-        // Call the original onPay callback
+
         onPay();
       } else {
         console.error("Failed to call scriptum endpoint:", response.statusText);
-        // Still call onPay to maintain the UI flow
+
         onPay();
       }
     } catch (error) {
       console.error("Error calling scriptum endpoint:", error);
-      // Still call onPay to maintain the UI flow
+
       onPay();
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const toggleCollapse = () => {
+    setIsCollapsed(!isCollapsed);
   };
 
   return (
     <div className="w-full flex flex-col items-center gap-4">
-      <div className="text-center">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-          Proposal Ready
-        </h2>
+      <div className="text-center relative w-full mx-auto">
+        <button
+          onClick={toggleCollapse}
+          className={`absolute top-0 right-0 p-2 text-gray-500 hover:text-gray-700 transition-all duration-300 ease-in-out z-10 hover:scale-110 ${
+            isCollapsed ? "top-1/2 -translate-y-1/2 right-2" : ""
+          }`}
+          aria-label={
+            isCollapsed
+              ? "Expand proposal details"
+              : "Collapse proposal details"
+          }
+        >
+          {isCollapsed ? (
+            <LuChevronUp className="w-6 h-6 cursor-pointer" />
+          ) : (
+            <LuChevronDown className="w-6 h-6 cursor-pointer" />
+          )}
+        </button>
 
-        <p className="text-gray-600 mb-4">
-          Your legal proposal is ready. Please proceed with payment to access
-          it.
-        </p>
+        {/* Header content with smooth fade animation */}
+        <div
+          className={`transition-all duration-500 ease-in-out overflow-hidden ${
+            isCollapsed ? "max-h-0 opacity-0" : "max-h-32 opacity-100"
+          }`}
+        >
+          <h2 className="text-2xl font-semibold text-gray-900 mb-2 transform transition-all duration-300 ease-in-out">
+            Proposal Ready
+          </h2>
 
-        <div className="bg-white rounded-xl p-6 border border-gray-200">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-lg font-medium text-gray-700">
-              Proposal Price:
-            </span>
+          <p className="text-gray-600 mb-4 transform transition-all duration-300 ease-in-out">
+            Your legal proposal is ready. Please proceed with payment to access
+            it.
+          </p>
+        </div>
 
-            <span className="text-2xl font-bold text-black">
-              ${price.toFixed(2)}
-            </span>
-          </div>
+        <div
+          className={`bg-white rounded-xl border border-gray-200 w-[600px] mx-auto transition-all duration-500 ease-in-out transform ${
+            isCollapsed ? "p-3 scale-95" : "p-6 scale-100"
+          }`}
+        >
+          {/* Content with smooth slide animation */}
+          {!isCollapsed && (
+            <div className="transition-all duration-500 ease-in-out overflow-hidden mb-6">
+              <div className="flex items-center justify-between mb-4 transform transition-all duration-300 ease-in-out">
+                <span className="text-lg font-medium text-gray-700">
+                  Proposal Price:
+                </span>
 
-          {/* Payment method explanation */}
-          <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-            <div className="flex items-center justify-center gap-3 mb-2">
-              <Link
-                href="https://coinmarketcap.com/currencies/ethereum/"
-                target="_blank"
-              >
-                <Image
-                  src={"/assets/onchain-logos/eth.svg"}
-                  alt="ETH"
-                  className="w-8 h-8"
-                  width={32}
-                  height={32}
-                />
-              </Link>
+                <span className="text-2xl font-bold text-black">
+                  ${price.toFixed(2)}
+                </span>
+              </div>
 
-              <span className="text-sm font-medium text-gray-700">+</span>
+              {/* Payment method explanation */}
+              <div className="p-4 bg-gray-50 rounded-lg transform transition-all duration-300 ease-in-out hover:bg-gray-100">
+                <div className="flex items-center justify-center gap-3 mb-2">
+                  <Link
+                    href="https://coinmarketcap.com/currencies/ethereum/"
+                    target="_blank"
+                    className="transform transition-all duration-200 hover:scale-110"
+                  >
+                    <Image
+                      src={"/assets/onchain-logos/eth.svg"}
+                      alt="ETH"
+                      className="w-8 h-8"
+                      width={32}
+                      height={32}
+                    />
+                  </Link>
 
-              <Link href="https://base.org" target="_blank">
-                <Image
-                  src={"/assets/onchain-logos/base.svg"}
-                  alt="Base Chain"
-                  className="w-8 h-8"
-                  width={32}
-                  height={32}
-                />
-              </Link>
+                  <span className="text-sm font-medium text-gray-700">+</span>
+
+                  <Link
+                    href="https://base.org"
+                    target="_blank"
+                    className="transform transition-all duration-200 hover:scale-110"
+                  >
+                    <Image
+                      src={"/assets/onchain-logos/base.svg"}
+                      alt="Base Chain"
+                      className="w-8 h-8"
+                      width={32}
+                      height={32}
+                    />
+                  </Link>
+                </div>
+                <p className="text-sm text-gray-600 text-center">
+                  Payment is made in ETH on Base network
+                </p>
+              </div>
             </div>
-            <p className="text-sm text-gray-600 text-center">
-              Payment is made in ETH on Base network
-            </p>
-          </div>
+          )}
 
           <button
             onClick={handlePayClick}
-            className="w-full bg-black text-white px-6 py-4 rounded-xl text-lg font-semibold hover:bg-[#2c3552] transition shadow-md cursor-pointer flex items-center justify-center gap-2"
+            disabled={isLoading}
+            className="w-full bg-black text-white rounded-xl font-semibold transition-all duration-300 ease-in-out shadow-md cursor-pointer flex items-center justify-center gap-2 hover:bg-[#2c3552] hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 px-6 py-4 text-lg"
           >
-            <span>Pay Tomas</span>
+            {isLoading ? (
+              <>
+                <span className="loader-tomas inline-block w-4 h-4 border-2 border-white rounded-full animate-spin"></span>
+                <span>Processing Payment...</span>
+              </>
+            ) : (
+              <span>Pay Tomas</span>
+            )}
           </button>
         </div>
       </div>
