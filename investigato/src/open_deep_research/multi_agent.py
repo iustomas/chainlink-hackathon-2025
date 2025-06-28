@@ -19,6 +19,7 @@ from open_deep_research.utils import (
     tavily_search,
     duckduckgo_search,
     get_today_str,
+    retry_with_backoff,
 )
 
 from open_deep_research.prompts import SUPERVISOR_INSTRUCTIONS, RESEARCH_INSTRUCTIONS
@@ -230,19 +231,22 @@ async def supervisor(state: ReportState, config: RunnableConfig):
     if configurable.mcp_prompt:
         system_prompt += f"\n\n{configurable.mcp_prompt}"
 
-    # Invoke
+    # Invoke with retry logic for rate limits
+    async def invoke_llm():
+        return await llm_with_tools.ainvoke(
+            [
+                {
+                    "role": "system",
+                    "content": system_prompt
+                }
+            ]
+            + messages
+        )
+
+    result = await retry_with_backoff(invoke_llm)
+
     return {
-        "messages": [
-            await llm_with_tools.ainvoke(
-                [
-                    {
-                        "role": "system",
-                        "content": system_prompt
-                    }
-                ]
-                + messages
-            )
-        ]
+        "messages": [result]
     }
 
 async def supervisor_tools(state: ReportState, config: RunnableConfig)  -> Command[Literal["supervisor", "research_team", "__end__"]]:
@@ -268,11 +272,15 @@ async def supervisor_tools(state: ReportState, config: RunnableConfig)  -> Comma
     for tool_call in state["messages"][-1].tool_calls:
         # Get the tool
         tool = supervisor_tools_by_name[tool_call["name"]]
-        # Perform the tool call - use ainvoke for async tools
-        try:
-            observation = await tool.ainvoke(tool_call["args"], config)
-        except NotImplementedError:
-            observation = tool.invoke(tool_call["args"], config)
+        
+        # Perform the tool call with retry logic for rate limits
+        async def invoke_tool():
+            try:
+                return await tool.ainvoke(tool_call["args"], config)
+            except NotImplementedError:
+                return tool.invoke(tool_call["args"], config)
+        
+        observation = await retry_with_backoff(invoke_tool)
 
         # Append to messages 
         result.append({"role": "tool", 
@@ -380,22 +388,25 @@ async def research_agent(state: SectionState, config: RunnableConfig):
     if not messages:
         messages = [{"role": "user", "content": f"Please research and write the section: {state['section']}"}]
 
+    # Invoke with retry logic for rate limits
+    async def invoke_llm():
+        return await llm.bind_tools(research_tool_list,             
+                                     parallel_tool_calls=False,
+                                     # force at least one tool call
+                                     tool_choice="any").ainvoke(
+            [
+                {
+                    "role": "system",
+                    "content": system_prompt
+                }
+            ]
+            + messages
+        )
+
+    result = await retry_with_backoff(invoke_llm)
+
     return {
-        "messages": [
-            # Enforce tool calling to either perform more search or call the Section tool to write the section
-            await llm.bind_tools(research_tool_list,             
-                                 parallel_tool_calls=False,
-                                 # force at least one tool call
-                                 tool_choice="any").ainvoke(
-                [
-                    {
-                        "role": "system",
-                        "content": system_prompt
-                    }
-                ]
-                + messages
-            )
-        ]
+        "messages": [result]
     }
 
 async def research_agent_tools(state: SectionState, config: RunnableConfig):
@@ -419,11 +430,15 @@ async def research_agent_tools(state: SectionState, config: RunnableConfig):
     for tool_call in state["messages"][-1].tool_calls:
         # Get the tool
         tool = research_tools_by_name[tool_call["name"]]
-        # Perform the tool call - use ainvoke for async tools
-        try:
-            observation = await tool.ainvoke(tool_call["args"], config)
-        except NotImplementedError:
-            observation = tool.invoke(tool_call["args"], config)
+        
+        # Perform the tool call with retry logic for rate limits
+        async def invoke_tool():
+            try:
+                return await tool.ainvoke(tool_call["args"], config)
+            except NotImplementedError:
+                return tool.invoke(tool_call["args"], config)
+        
+        observation = await retry_with_backoff(invoke_tool)
 
         # Append to messages 
         result.append({"role": "tool", 

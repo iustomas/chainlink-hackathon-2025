@@ -1636,3 +1636,49 @@ async def load_mcp_server_config(path: str) -> dict:
 
     config = await asyncio.to_thread(_load)
     return config
+
+async def retry_with_backoff(func, max_retries=5, base_delay=1.0, max_delay=60.0):
+    """
+    Retry function with exponential backoff for rate limit handling.
+    
+    Args:
+        func: Async function to retry
+        max_retries: Maximum number of retries
+        base_delay: Base delay in seconds
+        max_delay: Maximum delay in seconds
+        
+    Returns:
+        Result of the function call
+    """
+    last_exception = None
+    
+    for attempt in range(max_retries + 1):
+        try:
+            return await func()
+        except Exception as e:
+            last_exception = e
+            error_str = str(e).lower()
+            
+            # Check if it's a rate limit error
+            is_rate_limit = any(phrase in error_str for phrase in [
+                'rate limit', '429', 'too many requests', 'quota exceeded',
+                'tpm', 'rpm', 'tokens per min', 'requests per min'
+            ])
+            
+            if attempt == max_retries:
+                print(f"Max retries ({max_retries}) reached. Final error: {e}")
+                raise last_exception
+            
+            # Calculate delay with exponential backoff
+            delay = min(base_delay * (2 ** attempt), max_delay)
+            
+            # Add extra delay for rate limit errors
+            if is_rate_limit:
+                delay = max(delay, 5.0)  # Minimum 5 seconds for rate limits
+                print(f"Rate limit detected. Waiting {delay:.2f}s before retry {attempt + 1}/{max_retries}")
+            else:
+                print(f"Error detected. Waiting {delay:.2f}s before retry {attempt + 1}/{max_retries}")
+            
+            await asyncio.sleep(delay)
+    
+    raise last_exception
