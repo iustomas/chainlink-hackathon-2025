@@ -16,7 +16,7 @@ export class GoogleCloudStorageService {
       projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
     });
 
-    this.bucketName = "tomas-pdf-storage";
+    this.bucketName = "tomas-vault";
   }
 
   /**

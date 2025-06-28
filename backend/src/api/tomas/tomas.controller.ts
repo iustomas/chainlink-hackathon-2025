@@ -39,6 +39,7 @@ import { jsonExtractorService } from "../../services/json-extractor/index.js";
 // tomas service
 import { tomasService } from "../../services/tomas/index.js";
 import { pdfService, tomasPdfService } from "@/services/pdf/index.js";
+import { formatAddress } from "@/utils/format-address.js";
 
 // controller
 export const tomasController = {
@@ -135,6 +136,8 @@ export const tomasController = {
       //   },
       //   PROVIDER
       // );
+
+      // TODO: Eliminar esta logica de prueba
       const llmResponse = {
         content: "hola",
       };
@@ -147,6 +150,7 @@ export const tomasController = {
       let clientResponse = jsonExtractionResult.data?.client_response || "";
       const sufficiencyScore = jsonExtractionResult.data?.sufficiency_score;
 
+      // TODO: Eliminar esta logica de prueba
       // Generate proposal if sufficiency score is high enough
       if (
         // typeof sufficiencyScore === "number" &&
@@ -165,14 +169,16 @@ export const tomasController = {
             proposalResponse.response
           );
 
-        // Generate filename with timestamp
+        // Generate filename with timestamp for cloud storage
         const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-        const filename = `proposal-${userAddress}-${timestamp}.pdf`;
+        const cloudFilename = `proposal-for-${formatAddress(userAddress)}.pdf`;
 
         // Generate PDF proposal using Tomas service with cover page
         const pdfResult = await tomasPdfService.generatePdfProposal({
+          userAddress: userAddress,
           content: jsonExtractionResultProposal.data?.client_response || "",
-          filename: filename,
+          filename: cloudFilename,
+          uploadToCloud: true,
         });
 
         // Save conversation to Firestore history with the proposal price
@@ -192,9 +198,10 @@ export const tomasController = {
           price: jsonExtractionResultProposal.data?.price || 0,
           caseFacts: jsonExtractionResult.data?.case_facts || [],
           pdfGenerated: true,
-          pdfFilename: filename,
+          pdfFilename: cloudFilename,
           pdfSize: pdfResult.size,
           pdfPageCount: pdfResult.pageCount,
+          pdfCloudUrl: pdfResult.cloudStorageUrl, // Include cloud storage URL
         });
       }
 
