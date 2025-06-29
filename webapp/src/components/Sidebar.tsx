@@ -17,6 +17,7 @@ import {
   LuSettings,
   LuChevronsLeft,
   LuChevronsRight,
+  LuCreditCard,
 } from "react-icons/lu";
 
 /**
@@ -79,6 +80,16 @@ export default function Sidebar() {
               label="Vault"
               isActive={selectedOption === "vault"}
               onSelect={() => setSelectedOption("vault")}
+              collapsed={collapsed}
+            />
+          </Link>
+
+          <Link href="/subscription">
+            <SidebarOption
+              icon={<LuCreditCard size={20} />}
+              label="Subscription"
+              isActive={selectedOption === "subscription"}
+              onSelect={() => setSelectedOption("subscription")}
               collapsed={collapsed}
             />
           </Link>
