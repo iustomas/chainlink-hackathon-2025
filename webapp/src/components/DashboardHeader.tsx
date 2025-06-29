@@ -51,6 +51,10 @@ export default function DashboardHeader() {
     if (pathname === "/chat-provisory") {
       return "Assistant";
     }
+    if (pathname === "/subscription") {
+      return "Subscription";
+    }
+
     return "Assistant";
   };
 
