@@ -49,7 +49,7 @@ import { formatAddress } from "../../utils/format-address.js";
 export const tomasController = {
   // talk with tomas praefatio
   talkWithTomasPraefatio: async (c: Context) => {
-    const SUFFICIENCY_SCORE_THRESHOLD = 0.75;
+    const SUFFICIENCY_SCORE_THRESHOLD = 0.9;
 
     let body: TalkWithTomasRequest | undefined;
 
@@ -132,19 +132,20 @@ export const tomasController = {
       const PROVIDER = PROVIDERS.GEMINI;
       const MODEL = MODELS.GEMINI_2_5_FLASH_PREVIEW_05_20;
 
-      // const llmResponse = await llmServiceManager.generateText(
-      //   {
-      //     prompt: messageWithPreviousConversation,
-      //     systemPrompt: systemPrompt,
-      //     model: MODEL,
-      //   },
-      //   PROVIDER
-      // );
+      // Reactiva la llamada real al LLM y elimina la lógica de prueba
+      const llmResponse = await llmServiceManager.generateText(
+        {
+          prompt: messageWithPreviousConversation,
+          systemPrompt: systemPrompt,
+          model: MODEL,
+        },
+        PROVIDER
+      );
 
       // TODO: Eliminar esta logica de prueba
-      const llmResponse = {
-        content: "hola",
-      };
+      // const llmResponse = {
+      //   content: "hola",
+      // };
 
       // Extract Praefatio JSON from LLM response
       const jsonExtractionResult = jsonExtractorService.extractPraefatioJson(
@@ -157,9 +158,8 @@ export const tomasController = {
       // TODO: Eliminar esta logica de prueba
       // Generate proposal if sufficiency score is high enough
       if (
-        // typeof sufficiencyScore === "number" &&
-        // sufficiencyScore >= SUFFICIENCY_SCORE_THRESHOLD
-        true
+        typeof sufficiencyScore === "number" &&
+        sufficiencyScore >= SUFFICIENCY_SCORE_THRESHOLD
       ) {
         console.log("Generating proposal");
 
@@ -207,27 +207,30 @@ export const tomasController = {
           pdfPageCount: pdfResult.pageCount,
           pdfCloudUrl: pdfResult.cloudStorageUrl,
         });
+      } else {
+        // Sigue en modo conversación Praefatio
+        console.log("Continuing in Praefatio conversation mode");
+
+        // Save conversation to Firestore history
+        await conversationHistoryService.addConversationAndExtractedFacts(
+          userAddress,
+          validatedBody.message,
+          jsonExtractionResult.data?.client_response || "",
+          jsonExtractionResult.data?.case_facts || [],
+          jsonExtractionResult.data?.actions || [],
+          jsonExtractionResult.data?.sufficiency_score
+        );
+
+        const response: TalkWithTomasResponse = {
+          success: true,
+          response: clientResponse,
+          userAddress: validatedBody.userAddress,
+          timestamp: new Date().toISOString(),
+          caseFacts: jsonExtractionResult.data?.case_facts || [],
+        };
+
+        return c.json(response);
       }
-
-      // Save conversation to Firestore history
-      await conversationHistoryService.addConversationAndExtractedFacts(
-        userAddress,
-        validatedBody.message,
-        jsonExtractionResult.data?.client_response || "",
-        jsonExtractionResult.data?.case_facts || [],
-        jsonExtractionResult.data?.actions || [],
-        jsonExtractionResult.data?.sufficiency_score
-      );
-
-      const response: TalkWithTomasResponse = {
-        success: true,
-        response: clientResponse,
-        userAddress: validatedBody.userAddress,
-        timestamp: new Date().toISOString(),
-        caseFacts: jsonExtractionResult.data?.case_facts || [],
-      };
-
-      return c.json(response);
     } catch (error) {
       console.error("Error in talkWithTomasPraefatio:", error);
 

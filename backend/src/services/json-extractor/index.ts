@@ -363,14 +363,18 @@ export class JsonExtractorService {
    */
   private extractFromMarkdownCodeBlocks(text: string): any[] {
     const results: any[] = [];
-
-    // Regex to match ```json ... ``` blocks
     const jsonBlockRegex = /```json\s*([\s\S]*?)\s*```/gi;
     let match;
 
     while ((match = jsonBlockRegex.exec(text)) !== null) {
       try {
-        const jsonString = match[1].trim();
+        let jsonString = match[1].trim();
+
+        // Limpieza básica: elimina comentarios y corrige comillas simples
+        jsonString = jsonString.replace(/\\?'/g, '"');
+        // Opcional: elimina trailing commas
+        jsonString = jsonString.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']');
+
         const parsed = JSON.parse(jsonString);
         results.push(parsed);
       } catch (error) {
