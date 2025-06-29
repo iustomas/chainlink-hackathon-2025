@@ -72,11 +72,12 @@ deploy:
 
     # -------- 1. Select contract to deploy ---------
 	@echo "Select the contract to deploy:"
-	@select opt in "IntakePayment" "ConsumerSimpleImproved" "Exit"; do \
+	@select opt in "IntakePayment" "ConsumerSimpleImproved" "TomasSubscription" "Exit"; do \
 		case $$REPLY in \
 			1) MODULE="IntakePayment"; break;; \
 			2) MODULE="ConsumerSimpleImproved"; break;; \
-			3) echo "Operation cancelled."; exit 1;; \
+			3) MODULE="TomasSubscription"; break;; \
+			4) echo "Operation cancelled."; exit 1;; \
 		esac; \
 	done; \
 
@@ -105,18 +106,23 @@ deploy:
     # -------- 5. Verify contract ---------
 	echo "Contract deployed at: $$ADDRESS"; \
 	echo "Verifying smart contract..."; \
-	npx hardhat verify --network $(NETWORK) $$ADDRESS "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70"; \
+	if [ "$$MODULE" = "TomasSubscription" ]; then \
+		npx hardhat verify --network $(NETWORK) $$ADDRESS "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70"; \
+	else \
+		npx hardhat verify --network $(NETWORK) $$ADDRESS "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70"; \
+	fi; \
 	echo "All done!"
 
 # Deploy without verification (non-interactive)
 deploy-quick:
 	@echo "Select the contract to deploy:"
-	@select opt in "IntakePayment" "ConsumerSimpleImproved9" "ConsumerSimpleWithVRF6" "Exit"; do \
+	@select opt in "IntakePayment" "ConsumerSimpleImproved9" "ConsumerSimpleWithVRF6" "TomasSubscription" "Exit"; do \
 		case $$REPLY in \
 			1) MODULE="IntakePayment"; break;; \
 			2) MODULE="ConsumerSimpleImproved9"; break;; \
 			3) MODULE="ConsumerSimpleWithVRF6"; break;; \
-			4) echo "Operation cancelled."; exit 1;; \
+			4) MODULE="TomasSubscription"; break;; \
+			5) echo "Operation cancelled."; exit 1;; \
 			*) echo "Invalid option.";; \
 		esac; \
 	done; \
