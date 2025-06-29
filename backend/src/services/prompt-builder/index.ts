@@ -282,12 +282,22 @@ export class PromptBuilderService {
    * @returns The constructed respondeo prompt string
    */
   public buildRespondeoPrompt(args: { finalReport: string; respondeoDirective: string }): string {
-    return `
-      ### Legal Analysis Report
-      ${args.finalReport}
+    // Lee el system prompt y el formato de respuesta de Respondeo
+    const respondeoSystemPromptPath = join(agentBasePath, "system-prompts/respondeo.md");
+    const respondeoSystemPrompt = this.readFileSafely(respondeoSystemPromptPath) || "";
 
-      ### Response Instructions
-      ${args.respondeoDirective}
+    const respondeoResponseFormatPath = join(agentBasePath, "responses/response-respondeo.md");
+    const respondeoResponseFormat = this.readFileSafely(respondeoResponseFormatPath) || "";
+
+    // Construye el prompt completo
+    return `
+${respondeoSystemPrompt ? `### System Instructions\n${respondeoSystemPrompt}\n` : ""}
+${respondeoResponseFormat ? `### Response Format\n${respondeoResponseFormat}\n` : ""}
+### Legal Analysis Report
+${args.finalReport}
+
+### Response Instructions
+${args.respondeoDirective}
     `.trim();
   }
 
