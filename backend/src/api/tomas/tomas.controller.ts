@@ -305,13 +305,14 @@ export const tomasController = {
       //   );
       // }
 
-      // --- Step 1: Ejecutar Cognitio ---
       const conversationHistory =
         await conversationHistoryService.getConversationHistory(
           validatedBody.userAddress
         );
+
       const { systemPrompt, userMessage } =
         promptBuilderService.buildCognitioPrompt(conversationHistory);
+
       const PROVIDER = PROVIDERS.GEMINI;
       const MODEL = MODELS.GEMINI_2_5_FLASH_PREVIEW_05_20;
 
@@ -323,6 +324,7 @@ export const tomasController = {
         },
         PROVIDER
       );
+
       console.log("Cognitio Output:", cognitioResponse.content);
 
       // --- Step 2: Parsear output de Cognitio para extraer input de Investigato y Respondeo ---
@@ -370,6 +372,7 @@ export const tomasController = {
 
       // --- Step 3: Ejecutar Investigato ---
       let investigatoResponse;
+
       try {
         investigatoResponse = investigatoInput
           ? await tomasService.generateInvestigatoAnalysis(investigatoInput)
@@ -379,6 +382,14 @@ export const tomasController = {
         investigatoResponse = null;
       }
       console.log("Investigato Output:", investigatoResponse);
+
+      await tomasPdfService.generatePdfInvestigato({
+        userAddress: validatedBody.userAddress,
+        content:
+          investigatoResponse && investigatoResponse.response.final_report,
+        filename: `investigato-for-${formatAddress(validatedBody.userAddress)}.pdf`,
+        uploadToCloud: true,
+      });
 
       // --- Step 3b: Parsear el final_report del output de Investigato ---
       let investigatoFinalReport = "";
@@ -400,10 +411,11 @@ export const tomasController = {
         );
         investigatoFinalReport = "";
       }
+
       console.log("Investigato Final Report:", investigatoFinalReport);
 
       // --- Step 4: Ejecutar Respondeo ---
-      // Respondeo recibe como input el final_report de investigato y el respondeoInput de cognitio
+
       let respondeoResponse;
       try {
         console.log("Respondeo Input (finalReport):", investigatoFinalReport);
@@ -415,12 +427,19 @@ export const tomasController = {
                 respondeoDirective: respondeoInput,
               })
             : null;
-        console.log("Respondeo Output:", respondeoResponse);
       } catch (err) {
         console.error("Error calling Respondeo module:", err);
         respondeoResponse = null;
       }
       console.log("Respondeo Output:", respondeoResponse);
+
+      // --- Step 4b: Generate PDF for Respondeo ---
+      await tomasPdfService.generatePdfRespondeo({
+        userAddress: validatedBody.userAddress,
+        content: respondeoResponse?.response || "",
+        filename: `respondeo-for-${formatAddress(validatedBody.userAddress)}.pdf`,
+        uploadToCloud: true,
+      });
 
       // --- Step 5: Escalate to Human Lawyer if requested ---
       if (validatedBody.escalateToHumanLawyer) {

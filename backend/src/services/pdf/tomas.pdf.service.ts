@@ -20,6 +20,12 @@ import { googleCloudStorageService } from "../storage/google-cloud-storage.servi
 // vault service
 import { vaultService } from "../firestore/vault.service.js";
 
+// types
+import {
+  TomasProposalOptions,
+  TomasInvestigatoOptions,
+} from "./types/tomas.pdf.types.js";
+
 /**
  * Tomas PDF Service - Specialized wrapper for generating legal documents
  * Provides functionality to generate professional legal documents PDFs with cover pages
@@ -127,11 +133,12 @@ export class TomasPDFService {
 
           // Save to Firestore vault if userAddress is provided
           if (options.userAddress && cloudStorageUrl) {
-            await this.saveProposalToVault(
+            await this.saveDocumentToVault(
               options.userAddress,
               filename,
               cloudStorageUrl,
-              result.size
+              result.size,
+              "proposal"
             );
             console.log(
               `Proposal saved to vault for user: ${options.userAddress}`
@@ -173,19 +180,316 @@ export class TomasPDFService {
   }
 
   /**
-   * Save proposal to Firestore vault
+   * Generate an investigato PDF with cover page and professional formatting
+   * @param options - Investigato generation options
+   * @returns Promise with PDF generation result including cloud storage URL
+   */
+  async generatePdfInvestigato(
+    options: TomasInvestigatoOptions
+  ): Promise<PDFGenerationResult & { cloudStorageUrl?: string }> {
+    let tempFilePath: string | undefined;
+
+    try {
+      console.log("Generating investigato PDF for Tomas...");
+
+      // Load logo data
+      const logoData = await this.loadLogoData();
+
+      // Build advanced PDF options with cover page
+      const pdfOptions: PDFGenerationOptions = {
+        content: options.content,
+        title: options.title || "Investigato Report",
+        author: options.author || "Tomas - Crypto/Onchain Legal Assistant",
+        subject:
+          options.subject ||
+          "Deep Research Report for Crypto/Onchain Legal Analysis",
+        keywords: options.keywords || [
+          "AI",
+          "legal",
+          "crypto",
+          "web3",
+          "onchain",
+          "blockchain",
+          "research",
+          "investigation",
+        ],
+        pageSize: "Legal",
+        orientation: "portrait",
+        fontSize: 11,
+        lineHeight: 1.4,
+        margins: 50,
+        coverPage: {
+          title: options.title || "Investigato Report",
+          author: options.author || "Tomas - Crypto/Onchain Legal Assistant",
+          logo: {
+            data: logoData,
+            name: "tomas_logo",
+            width: 120,
+            height: 60,
+            format: "png",
+          },
+          showDate: true,
+          customDate: options.customDate || this.getCurrentDate(),
+        },
+        links: options.links || [
+          {
+            text: "More information about our services",
+            url: "https://tomas-legal-ai.com",
+            fontSize: 12,
+          },
+          {
+            text: "Contact for inquiries",
+            url: "mailto:contacto@tomas-legal-ai.com",
+            fontSize: 12,
+          },
+        ],
+      };
+
+      // Generate PDF using the base service
+      const result = await pdfService.generatePDF(pdfOptions);
+
+      // Upload to Google Cloud Storage if uploadToCloud is enabled
+      let cloudStorageUrl: string | undefined;
+      if (options.uploadToCloud !== false) {
+        try {
+          const tempDir = os.tmpdir();
+          const filename = options.filename || `investigato-${Date.now()}.pdf`;
+          tempFilePath = path.join(tempDir, filename);
+
+          await this.saveToLocalFile(result.pdfBytes, tempFilePath);
+          console.log(`PDF investigato saved temporarily as: ${tempFilePath}`);
+
+          cloudStorageUrl = await googleCloudStorageService.uploadFile(
+            Buffer.from(result.pdfBytes),
+            filename,
+            "application/pdf"
+          );
+
+          console.log(
+            `PDF investigato uploaded to cloud storage: ${cloudStorageUrl}`
+          );
+
+          // Save to Firestore vault if userAddress is provided
+          if (options.userAddress && cloudStorageUrl) {
+            await this.saveDocumentToVault(
+              options.userAddress,
+              filename,
+              cloudStorageUrl,
+              result.size,
+              "investigato"
+            );
+            console.log(
+              `Investigato saved to vault for user: ${options.userAddress}`
+            );
+          }
+
+          // Delete temporary file after successful upload
+          await this.deleteLocalFile(tempFilePath);
+          console.log(`Temporary file deleted: ${tempFilePath}`);
+          tempFilePath = undefined; // Clear the path since file is deleted
+        } catch (uploadError) {
+          console.error("Error uploading PDF to cloud storage:", uploadError);
+        }
+      }
+
+      console.log(
+        `PDF investigato generated successfully: ${result.size} bytes, ${result.pageCount} pages`
+      );
+
+      return {
+        ...result,
+        cloudStorageUrl,
+      };
+    } catch (error) {
+      console.error("Error generating PDF investigato:", error);
+      throw new Error(
+        `Failed to generate PDF investigato: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
+    } finally {
+      if (tempFilePath) {
+        try {
+          await this.deleteLocalFile(tempFilePath);
+          console.log(`Cleaned up temporary file: ${tempFilePath}`);
+        } catch (cleanupError) {
+          console.error("Error cleaning up temporary file:", cleanupError);
+        }
+      }
+    }
+  }
+
+  /**
+   * Generate a respondeo PDF with cover page and professional formatting
+   * This is the final delivery document for clients
+   * @param options - Respondeo generation options
+   * @returns Promise with PDF generation result including cloud storage URL
+   */
+  async generatePdfRespondeo(
+    options: TomasProposalOptions
+  ): Promise<PDFGenerationResult & { cloudStorageUrl?: string }> {
+    let tempFilePath: string | undefined;
+
+    try {
+      console.log("Generating respondeo PDF for Tomas...");
+
+      // Load logo data
+      const logoData = await this.loadLogoData();
+
+      // Build advanced PDF options with cover page
+      const pdfOptions: PDFGenerationOptions = {
+        content: options.content,
+        title: options.title || "Final Legal Response",
+        author: options.author || "Tomas - Crypto/Onchain Legal Assistant",
+        subject:
+          options.subject ||
+          "Final Legal Response and Analysis for Crypto/Onchain Legal Case",
+        keywords: options.keywords || [
+          "AI",
+          "legal",
+          "crypto",
+          "web3",
+          "onchain",
+          "blockchain",
+          "response",
+          "analysis",
+          "final",
+        ],
+        pageSize: "Legal",
+        orientation: "portrait",
+        fontSize: 11,
+        lineHeight: 1.4,
+        margins: 50,
+        coverPage: {
+          title: options.title || "Final Legal Response",
+          author: options.author || "Tomas - Crypto/Onchain Legal Assistant",
+          logo: {
+            data: logoData,
+            name: "tomas_logo",
+            width: 120,
+            height: 60,
+            format: "png",
+          },
+          showDate: true,
+          customDate: options.customDate || this.getCurrentDate(),
+        },
+        links: options.links || [
+          {
+            text: "More information about our services",
+            url: "https://iustomas.ai",
+            fontSize: 12,
+          },
+          {
+            text: "Contact for inquiries",
+            url: "mailto:eugenio@iustomas.ai",
+            fontSize: 12,
+          },
+        ],
+      };
+
+      // Generate PDF using the base service
+      const result = await pdfService.generatePDF(pdfOptions);
+
+      // Upload to Google Cloud Storage if uploadToCloud is enabled
+      let cloudStorageUrl: string | undefined;
+      if (options.uploadToCloud !== false) {
+        try {
+          const tempDir = os.tmpdir();
+          const filename = options.filename || `respondeo-${Date.now()}.pdf`;
+          tempFilePath = path.join(tempDir, filename);
+
+          await this.saveToLocalFile(result.pdfBytes, tempFilePath);
+          console.log(`PDF respondeo saved temporarily as: ${tempFilePath}`);
+
+          cloudStorageUrl = await googleCloudStorageService.uploadFile(
+            Buffer.from(result.pdfBytes),
+            filename,
+            "application/pdf"
+          );
+
+          console.log(
+            `PDF respondeo uploaded to cloud storage: ${cloudStorageUrl}`
+          );
+
+          // Save to Firestore vault if userAddress is provided
+          if (options.userAddress && cloudStorageUrl) {
+            await this.saveDocumentToVault(
+              options.userAddress,
+              filename,
+              cloudStorageUrl,
+              result.size,
+              "respondeo"
+            );
+            console.log(
+              `Respondeo saved to vault for user: ${options.userAddress}`
+            );
+          }
+
+          // Delete temporary file after successful upload
+          await this.deleteLocalFile(tempFilePath);
+          console.log(`Temporary file deleted: ${tempFilePath}`);
+          tempFilePath = undefined; // Clear the path since file is deleted
+        } catch (uploadError) {
+          console.error("Error uploading PDF to cloud storage:", uploadError);
+        }
+      }
+
+      console.log(
+        `PDF respondeo generated successfully: ${result.size} bytes, ${result.pageCount} pages`
+      );
+
+      return {
+        ...result,
+        cloudStorageUrl,
+      };
+    } catch (error) {
+      console.error("Error generating PDF respondeo:", error);
+      throw new Error(
+        `Failed to generate PDF respondeo: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
+    } finally {
+      if (tempFilePath) {
+        try {
+          await this.deleteLocalFile(tempFilePath);
+          console.log(`Cleaned up temporary file: ${tempFilePath}`);
+        } catch (cleanupError) {
+          console.error("Error cleaning up temporary file:", cleanupError);
+        }
+      }
+    }
+  }
+
+  /**
+   * Save document to Firestore vault
    * @param userAddress - User's wallet address
    * @param filename - Name of the file
    * @param url - Cloud storage URL
    * @param size - File size in bytes
+   * @param documentType - Type of document (proposal, investigato, respondeo)
    */
-  private async saveProposalToVault(
+  private async saveDocumentToVault(
     userAddress: string,
     filename: string,
     url: string,
-    size: number
+    size: number,
+    documentType: "proposal" | "investigato" | "respondeo"
   ): Promise<void> {
     try {
+      const documentConfig = {
+        proposal: {
+          description: "Legal service proposal generated by Tomas",
+          tags: ["proposal", "document"],
+        },
+        investigato: {
+          description: "Dossier report generated by Tomas",
+          tags: ["research", "document"],
+        },
+        respondeo: {
+          description: "Final legal response document generated by Tomas",
+          tags: ["final", "document", "delivery"],
+        },
+      };
+
+      const config = documentConfig[documentType];
+
       const vaultFile = {
         userAddress,
         name: filename,
@@ -193,16 +497,16 @@ export class TomasPDFService {
         url,
         size: Math.round((size / (1024 * 1024)) * 100) / 100,
         timestamp: Date.now(),
-        description: "Legal service proposal generated by Tomas",
-        tags: ["proposal", "document"],
+        description: config.description,
+        tags: config.tags,
         isPublic: false,
       };
 
       await vaultService.addVaultFile(vaultFile);
     } catch (error) {
-      console.error("Error saving proposal to vault:", error);
+      console.error(`Error saving ${documentType} to vault:`, error);
       throw new Error(
-        `Failed to save proposal to vault: ${error instanceof Error ? error.message : "Unknown error"}`
+        `Failed to save ${documentType} to vault: ${error instanceof Error ? error.message : "Unknown error"}`
       );
     }
   }
@@ -218,6 +522,7 @@ export class TomasPDFService {
       return logoData;
     } catch (error) {
       console.warn("Could not read logo file, using placeholder:", error);
+
       // Create a simple placeholder image if logo is not found
       const placeholderData = new Uint8Array([
         0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d,
@@ -288,36 +593,6 @@ export class TomasPDFService {
 
     return `${months[now.getMonth()]} ${now.getFullYear()}`;
   }
-}
-
-/**
- * Options for generating Tomas legal proposals
- */
-export interface TomasProposalOptions {
-  /** User address */
-  userAddress: string;
-  /** The proposal content (supports markdown formatting) */
-  content: string;
-  /** Title of the proposal */
-  title?: string;
-  /** Author name */
-  author?: string;
-  /** Subject of the proposal */
-  subject?: string;
-  /** Keywords for the proposal */
-  keywords?: string[];
-  /** Custom date for the cover page */
-  customDate?: string;
-  /** Links to include in the proposal */
-  links?: Array<{
-    text: string;
-    url: string;
-    fontSize?: number;
-  }>;
-  /** Filename to save the PDF locally */
-  filename?: string;
-  /** Whether to upload the PDF to Google Cloud Storage */
-  uploadToCloud?: boolean;
 }
 
 // Create and export a default instance

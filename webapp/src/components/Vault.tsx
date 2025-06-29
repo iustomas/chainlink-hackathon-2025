@@ -103,26 +103,26 @@ export default function Vault() {
 
       case "doc":
       case "docx":
-        return <LuFileText className="w-8 h-8 text-blue-500" />;
+        return <LuFileText className="w-8 h-8 text-gray-700" />;
 
       case "jpg":
       case "jpeg":
       case "png":
       case "gif":
       case "svg":
-        return <LuImage className="w-8 h-8 text-green-500" />;
+        return <LuImage className="w-8 h-8 text-gray-700" />;
 
       case "mp4":
       case "avi":
       case "mov":
-        return <LuVideo className="w-8 h-8 text-purple-500" />;
+        return <LuVideo className="w-8 h-8 text-gray-700" />;
 
       case "mp3":
       case "wav":
-        return <LuMusic className="w-8 h-8 text-orange-500" />;
+        return <LuMusic className="w-8 h-8 text-gray-700" />;
 
       default:
-        return <LuFile className="w-8 h-8 text-gray-500" />;
+        return <LuFile className="w-8 h-8 text-gray-700" />;
     }
   };
 
@@ -177,7 +177,7 @@ export default function Vault() {
           {/* Loading state */}
           {loading && (
             <div className="flex-1 flex flex-col justify-center items-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-700 mb-4"></div>
               <p className="text-gray-500">Loading your vault...</p>
             </div>
           )}
@@ -209,35 +209,35 @@ export default function Vault() {
             <div className="flex-1 flex flex-col">
               {/* Stats cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="bg-[#FBFBF9] border border-[#F0EEE7] rounded-lg p-4">
                   <div className="flex items-center">
-                    <div className="text-blue-600 text-2xl mr-3">
+                    <div className="text-gray-700 text-2xl mr-3">
                       <LuActivity className="w-8 h-8" />
                     </div>
 
                     <div>
-                      <p className="text-sm text-blue-600 font-medium">
+                      <p className="text-sm text-gray-600 font-medium">
                         Total Files
                       </p>
 
-                      <p className="text-2xl font-bold text-blue-900">
+                      <p className="text-2xl font-bold text-gray-900">
                         {vaultData.stats.totalFiles}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="bg-[#FBFBF9] border border-[#F0EEE7] rounded-lg p-4">
                   <div className="flex items-center">
-                    <div className="text-green-600 text-2xl mr-3">
+                    <div className="text-gray-700 text-2xl mr-3">
                       <LuHardDrive className="w-8 h-8" />
                     </div>
 
                     <div>
-                      <p className="text-sm text-green-600 font-medium">
+                      <p className="text-sm text-gray-600 font-medium">
                         Total Size
                       </p>
-                      <p className="text-2xl font-bold text-green-900">
+                      <p className="text-2xl font-bold text-gray-900">
                         {formatFileSize(vaultData.stats.totalSizeMB)}
                       </p>
                     </div>
@@ -268,7 +268,7 @@ export default function Vault() {
                     {vaultData.files.map((file, index) => (
                       <div
                         key={index}
-                        className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer"
+                        className="bg-white border border-[#F0EEE7] rounded-lg p-4 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer"
                         onClick={() => handleFileClick(file)}
                       >
                         <div className="flex items-start justify-between mb-3">
@@ -282,13 +282,13 @@ export default function Vault() {
                                 e.stopPropagation();
                                 handleDownload(file);
                               }}
-                              className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                              className="p-1 text-gray-400 hover:text-gray-700 transition-colors"
                               title="Download"
                             >
                               <LuDownload className="w-4 h-4" />
                             </button>
                             {file.isPublic && (
-                              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded flex items-center gap-1">
+                              <span className="text-xs bg-[#FBFBF9] text-gray-700 px-2 py-1 rounded flex items-center gap-1 border border-[#F0EEE7]">
                                 <LuGlobe className="w-3 h-3" />
                                 Public
                               </span>
@@ -317,7 +317,7 @@ export default function Vault() {
                               {file.tags.slice(0, 3).map((tag, tagIndex) => (
                                 <span
                                   key={tagIndex}
-                                  className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded"
+                                  className="text-xs bg-[#FBFBF9] text-gray-600 px-2 py-1 rounded border border-[#F0EEE7]"
                                 >
                                   {tag}
                                 </span>
