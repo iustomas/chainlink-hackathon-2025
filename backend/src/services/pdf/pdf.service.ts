@@ -3,9 +3,7 @@ import PdfPrinter from "pdfmake";
 import {
   PDFGenerationOptions,
   PDFGenerationResult,
-  PDFImageData,
   PDFLinkData,
-  PDFGraphicData,
   PDFService,
   PDFCoverPageOptions,
 } from "./types/pdf.types.js";
@@ -71,17 +69,14 @@ export class PDFServiceImpl implements PDFService {
           const imageName =
             image.name || `image_${Math.random().toString(36).substr(2, 9)}`;
           if (typeof image.data === "string") {
-            // Check if it's already a data URL
             if (image.data.startsWith("data:")) {
               images[imageName] = image.data;
             } else {
-              // Convert SVG content to base64 data URL
               const svgContent = image.data;
               const base64 = Buffer.from(svgContent, "utf8").toString("base64");
               images[imageName] = `data:image/svg+xml;base64,${base64}`;
             }
           } else {
-            // Convert Uint8Array to base64
             const base64 = Buffer.from(image.data).toString("base64");
             const mimeType = this.getMimeType(image.format);
             images[imageName] = `data:${mimeType};base64,${base64}`;
@@ -113,11 +108,56 @@ export class PDFServiceImpl implements PDFService {
           alignment: "justify",
         },
         footer: function (currentPage: number, pageCount: number) {
+          const leftMargin = 50;
+          const rightMargin = 50;
+          const pageWidth = 595.28;
+
           return {
-            text: currentPage.toString(),
-            alignment: "center",
-            fontSize: 10,
-            margin: [0, 10, 0, 0],
+            stack: [
+              {
+                canvas: [
+                  {
+                    type: "line",
+                    x1: leftMargin,
+                    y1: 0,
+                    x2: pageWidth - rightMargin,
+                    y2: 0,
+                    lineWidth: 1,
+                    lineColor: "#AAAAAA",
+                  },
+                ],
+                margin: [0, 10, 0, 0],
+              },
+              {
+                text:
+                  currentPage === 1
+                    ? [
+                        {
+                          text: "Tomas from iustomas.ai and Affiliates",
+                          fontSize: 8,
+                          color: "#AAAAAA",
+                          margin: [0, -2, 0, 0],
+                        },
+                      ]
+                    : [
+                        {
+                          text: currentPage.toString() + "  ",
+                          bold: true,
+                          fontSize: 10,
+                          color: "#2C3E50",
+                        },
+                        {
+                          text: "Tomas from iustomas.ai and Affiliates",
+                          fontSize: 8,
+                          color: "#AAAAAA",
+                          margin: [0, -3, 0, 0],
+                        },
+                      ],
+                alignment: "center",
+                margin: [0, 8, 0, 0],
+              },
+            ],
+            margin: [0, 0, 0, 0],
           };
         },
         styles: {
@@ -161,7 +201,7 @@ export class PDFServiceImpl implements PDFService {
 
           resolve({
             pdfBytes,
-            pageCount: 1, // pdfmake doesn't provide page count easily
+            pageCount: 1,
             size: pdfBytes.length,
           });
         });
@@ -239,25 +279,112 @@ export class PDFServiceImpl implements PDFService {
   ): any {
     const content: any[] = [];
 
-    // Add title
+    // Add decorative header line
     content.push({
-      text: coverPage.title,
-      style: "coverTitle",
+      canvas: [
+        {
+          type: "line",
+          x1: 50,
+          y1: 0,
+          x2: 545,
+          y2: 0,
+          lineWidth: 2,
+          lineColor: "#2C3E50",
+        },
+      ],
+      margin: [0, 0, 0, 35],
     });
 
-    // Add author
-    content.push({
-      text: coverPage.author,
-      style: "coverAuthor",
-    });
-
-    // Add logo if provided
+    // Add logo if provided (positioned at top right)
     if (coverPage.logo && coverPage.logo.name && images[coverPage.logo.name]) {
       content.push({
         image: coverPage.logo.name,
         width: coverPage.logo.width || 100,
         height: coverPage.logo.height || 50,
         alignment: "right",
+        margin: [0, 0, 0, 50],
+      });
+    }
+
+    // Add document type (if provided)
+    if (coverPage.documentType) {
+      content.push({
+        text: coverPage.documentType,
+        fontSize: 13,
+        color: "#7F8C8D",
+        alignment: "center",
+        margin: [0, 0, 0, 20],
+        italics: true,
+      });
+    }
+
+    // Add main title
+    content.push({
+      text: coverPage.title,
+      fontSize: 30,
+      bold: true,
+      alignment: "center",
+      margin: [0, 0, 0, 25],
+      color: "#2C3E50",
+    });
+
+    // Add subtitle if provided
+    if (coverPage.subtitle) {
+      content.push({
+        text: coverPage.subtitle,
+        fontSize: 15,
+        alignment: "center",
+        margin: [0, 0, 0, 30],
+        color: "#34495E",
+        italics: true,
+      });
+    }
+
+    // Add decorative separator (centered)
+    content.push({
+      canvas: [
+        {
+          type: "line",
+          x1: 175,
+          y1: 0,
+          x2: 420,
+          y2: 0,
+          lineWidth: 1,
+          lineColor: "#BDC3C7",
+        },
+      ],
+      margin: [0, 0, 0, 30],
+    });
+
+    // Add author/firm name
+    content.push({
+      text: coverPage.author,
+      fontSize: 19,
+      bold: true,
+      alignment: "center",
+      margin: [0, 0, 0, 25],
+      color: "#2C3E50",
+    });
+
+    // Add client name if provided
+    if (coverPage.clientName) {
+      content.push({
+        text: `Prepared for: ${coverPage.clientName}`,
+        fontSize: 13,
+        alignment: "center",
+        margin: [0, 0, 0, 20],
+        color: "#34495E",
+      });
+    }
+
+    // Add reference number if provided
+    if (coverPage.referenceNumber) {
+      content.push({
+        text: `Reference: ${coverPage.referenceNumber}`,
+        fontSize: 11,
+        alignment: "center",
+        margin: [0, 0, 0, 30],
+        color: "#7F8C8D",
       });
     }
 
@@ -272,8 +399,74 @@ export class PDFServiceImpl implements PDFService {
 
       content.push({
         text: dateText,
-        style: "coverDate",
+        fontSize: 13,
+        alignment: "center",
+        margin: [0, 0, 0, 40],
+        color: "#34495E",
       });
+    }
+
+    // Add contact information section (balanced)
+    if (coverPage.contactInfo) {
+      const contactStack: any[] = [];
+
+      if (coverPage.contactInfo.firmName) {
+        contactStack.push({
+          text: coverPage.contactInfo.firmName,
+          fontSize: 15,
+          bold: true,
+          alignment: "center",
+          margin: [0, 0, 0, 8],
+          color: "#2C3E50",
+        });
+      }
+
+      if (coverPage.contactInfo.address) {
+        contactStack.push({
+          text: coverPage.contactInfo.address,
+          fontSize: 11,
+          alignment: "center",
+          margin: [0, 0, 0, 4],
+          color: "#7F8C8D",
+        });
+      }
+
+      if (coverPage.contactInfo.phone) {
+        contactStack.push({
+          text: `Tel: ${coverPage.contactInfo.phone}`,
+          fontSize: 11,
+          alignment: "center",
+          margin: [0, 0, 0, 4],
+          color: "#7F8C8D",
+        });
+      }
+
+      if (coverPage.contactInfo.email) {
+        contactStack.push({
+          text: coverPage.contactInfo.email,
+          fontSize: 11,
+          alignment: "center",
+          margin: [0, 0, 0, 4],
+          color: "#7F8C8D",
+        });
+      }
+
+      if (coverPage.contactInfo.website) {
+        contactStack.push({
+          text: coverPage.contactInfo.website,
+          fontSize: 11,
+          alignment: "center",
+          margin: [0, 0, 0, 20],
+          color: "#7F8C8D",
+        });
+      }
+
+      if (contactStack.length > 0) {
+        content.push({
+          stack: contactStack,
+          margin: [0, 0, 0, 30],
+        });
+      }
     }
 
     return {

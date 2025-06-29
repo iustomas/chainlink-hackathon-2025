@@ -22,7 +22,7 @@ async function exampleUsage() {
       "src",
       "assets",
       "logo",
-      "black.png"
+      "logo-black-bg.png"
     );
     let logoData: Buffer;
 
@@ -43,141 +43,141 @@ async function exampleUsage() {
       logoData = Buffer.from(placeholderData);
     }
 
-    const longText = `**Propuesta de Servicio Legal Inteligente**
+    const longText = `**Intelligent Legal Service Proposal**
 
-Este documento presenta una **propuesta integral** para un servicio de asistencia legal basado en inteligencia artificial que revoluciona la forma en que los profesionales del derecho y sus clientes interactúan con la información legal.
+This document presents a **comprehensive proposal** for an artificial intelligence-based legal assistance service that revolutionizes the way legal professionals and their clients interact with legal information.
 
-## **Características Principales del Servicio**
+## **Main Service Features**
 
-### **1. Análisis Inteligente de Documentos**
-Nuestro sistema utiliza **algoritmos avanzados de procesamiento de lenguaje natural** para analizar documentos legales complejos. Puede identificar automáticamente:
-- **Cláusulas importantes** y términos contractuales críticos
-- **Riesgos legales** potenciales en acuerdos comerciales
-- **Inconsistencias** en la documentación legal
-- **Oportunidades de optimización** en contratos y acuerdos
+### **1. Intelligent Document Analysis**
+Our system uses **advanced natural language processing algorithms** to analyze complex legal documents. It can automatically identify:
+- **Important clauses** and critical contractual terms
+- **Legal risks** in commercial agreements
+- **Inconsistencies** in legal documentation
+- **Optimization opportunities** in contracts and agreements
 
-### **2. Generación Automática de Resúmenes**
-El servicio genera **resúmenes ejecutivos** de documentos legales extensos, destacando:
-- **Puntos clave** de cada sección
-- **Obligaciones principales** de las partes involucradas
-- **Fechas críticas** y plazos importantes
-- **Consecuencias legales** de incumplimientos
+### **2. Automatic Summary Generation**
+The service generates **executive summaries** of extensive legal documents, highlighting:
+- **Key points** of each section
+- **Main obligations** of the involved parties
+- **Critical dates** and important deadlines
+- **Legal consequences** of non-compliance
 
-### **3. Asistencia en Investigación Legal**
-Nuestra plataforma proporciona **herramientas de investigación avanzadas** que incluyen:
-- **Búsqueda semántica** en bases de datos legales
-- **Análisis de jurisprudencia** relevante
-- **Comparación de casos** similares
-- **Identificación de precedentes** legales importantes
+### **3. Legal Research Assistance**
+Our platform provides **advanced research tools** that include:
+- **Semantic search** in legal databases
+- **Case law analysis** of relevant jurisprudence
+- **Case comparison** of similar situations
+- **Identification of important legal precedents**
 
-## **Beneficios para Profesionales del Derecho**
+## **Benefits for Legal Professionals**
 
-### **Eficiencia Operativa**
-Los abogados pueden **reducir significativamente el tiempo** dedicado a tareas repetitivas como:
-- Revisión manual de contratos extensos
-- Búsqueda de información legal específica
-- Preparación de resúmenes ejecutivos
-- Análisis de riesgos contractuales
+### **Operational Efficiency**
+Lawyers can **significantly reduce time** spent on repetitive tasks such as:
+- Manual review of extensive contracts
+- Search for specific legal information
+- Preparation of executive summaries
+- Contractual risk analysis
 
-### **Precisión y Consistencia**
-El sistema garantiza **resultados consistentes** y **alta precisión** en:
-- Identificación de términos legales críticos
-- Análisis de riesgos y oportunidades
-- Generación de documentación legal
-- Cumplimiento normativo
+### **Accuracy and Consistency**
+The system ensures **consistent results** and **high accuracy** in:
+- Identification of critical legal terms
+- Risk and opportunity analysis
+- Legal documentation generation
+- Regulatory compliance
 
-### **Escalabilidad del Servicio**
-La plataforma permite a los estudios jurídicos **manejar mayor volumen** de casos sin comprometer la calidad del servicio, facilitando:
-- **Crecimiento del negocio** sin incrementos proporcionales en personal
-- **Atención simultánea** de múltiples clientes
-- **Optimización de recursos** humanos y tecnológicos
+### **Service Scalability**
+The platform allows law firms to **handle greater volume** of cases without compromising service quality, facilitating:
+- **Business growth** without proportional increases in staff
+- **Simultaneous attention** to multiple clients
+- **Optimization of human and technological resources**
 
-## **Aplicaciones Prácticas**
+## **Practical Applications**
 
-### **Derecho Corporativo**
-- **Análisis de fusiones y adquisiciones**
-- **Revisión de contratos comerciales**
-- **Due diligence** automatizado
-- **Cumplimiento regulatorio**
+### **Corporate Law**
+- **Merger and acquisition analysis**
+- **Commercial contract review**
+- **Automated due diligence**
+- **Regulatory compliance**
 
-### **Derecho Laboral**
-- **Análisis de contratos de trabajo**
-- **Evaluación de políticas empresariales**
-- **Gestión de conflictos laborales**
-- **Cumplimiento de normativas laborales**
+### **Labor Law**
+- **Employment contract analysis**
+- **Corporate policy evaluation**
+- **Labor conflict management**
+- **Labor regulation compliance**
 
-### **Derecho Civil**
-- **Revisión de contratos de compraventa**
-- **Análisis de acuerdos de arrendamiento**
-- **Evaluación de responsabilidades civiles**
-- **Gestión de sucesiones**
+### **Civil Law**
+- **Purchase and sale contract review**
+- **Lease agreement analysis**
+- **Civil liability evaluation**
+- **Succession management**
 
-## **Tecnología y Seguridad**
+## **Technology and Security**
 
-### **Infraestructura Avanzada**
-Nuestro sistema utiliza **tecnologías de vanguardia** incluyendo:
-- **Machine Learning** especializado en lenguaje legal
-- **Procesamiento de lenguaje natural** adaptado al contexto jurídico
-- **Algoritmos de análisis semántico** para comprensión profunda
-- **Sistemas de recomendación** inteligentes
+### **Advanced Infrastructure**
+Our system uses **cutting-edge technologies** including:
+- **Machine Learning** specialized in legal language
+- **Natural language processing** adapted to legal context
+- **Semantic analysis algorithms** for deep understanding
+- **Intelligent recommendation systems**
 
-### **Seguridad y Confidencialidad**
-Garantizamos **máxima seguridad** en el manejo de información sensible:
-- **Encriptación end-to-end** de todos los datos
-- **Cumplimiento GDPR** y normativas de protección de datos
-- **Auditorías de seguridad** regulares
-- **Acceso controlado** y autenticación multifactor
+### **Security and Confidentiality**
+We guarantee **maximum security** in handling sensitive information:
+- **End-to-end encryption** of all data
+- **GDPR compliance** and data protection regulations
+- **Regular security audits**
+- **Controlled access** and multi-factor authentication
 
-## **Implementación y Soporte**
+## **Implementation and Support**
 
-### **Proceso de Implementación**
-Nuestro equipo proporciona **soporte completo** durante la implementación:
-- **Configuración personalizada** según necesidades específicas
-- **Capacitación del personal** en el uso de la plataforma
-- **Migración de datos** existentes de forma segura
-- **Integración** con sistemas actuales
+### **Implementation Process**
+Our team provides **complete support** during implementation:
+- **Custom configuration** according to specific needs
+- **Staff training** in platform usage
+- **Secure migration** of existing data
+- **Integration** with current systems
 
-### **Soporte Continuo**
-Ofrecemos **soporte técnico especializado** que incluye:
-- **Asistencia 24/7** para consultas técnicas
-- **Actualizaciones regulares** del sistema
-- **Mejoras continuas** basadas en feedback de usuarios
-- **Capacitación adicional** según necesidades emergentes
+### **Continuous Support**
+We offer **specialized technical support** that includes:
+- **24/7 assistance** for technical queries
+- **Regular system updates**
+- **Continuous improvements** based on user feedback
+- **Additional training** according to emerging needs
 
-## **Inversión y Retorno**
+## **Investment and Return**
 
-### **Modelo de Precios Transparente**
-Nuestro modelo de precios está diseñado para **maximizar el retorno de inversión**:
-- **Precios escalables** según el volumen de uso
-- **Sin costos ocultos** o cargos adicionales
-- **Períodos de prueba** gratuitos
-- **Descuentos** para compromisos a largo plazo
+### **Transparent Pricing Model**
+Our pricing model is designed to **maximize return on investment**:
+- **Scalable prices** according to usage volume
+- **No hidden costs** or additional charges
+- **Free trial periods**
+- **Discounts** for long-term commitments
 
-### **Retorno de Inversión Esperado**
-Los clientes pueden esperar **mejoras significativas** en:
-- **Reducción del 60-80%** en tiempo de revisión de documentos
-- **Aumento del 40-60%** en capacidad de manejo de casos
-- **Mejora del 30-50%** en precisión de análisis legal
-- **Reducción del 25-40%** en costos operativos
+### **Expected Return on Investment**
+Clients can expect **significant improvements** in:
+- **60-80% reduction** in document review time
+- **40-60% increase** in case handling capacity
+- **30-50% improvement** in legal analysis accuracy
+- **25-40% reduction** in operational costs
 
-## **Conclusión**
+## **Conclusion**
 
-Esta **plataforma revolucionaria** representa el futuro de la práctica legal, combinando la **experiencia humana** con la **eficiencia tecnológica** para proporcionar servicios legales superiores. Invitamos a su organización a ser parte de esta **transformación digital** del sector legal.
+This **revolutionary platform** represents the future of legal practice, combining **human expertise** with **technological efficiency** to provide superior legal services. We invite your organization to be part of this **digital transformation** of the legal sector.
 
-Para más información sobre cómo podemos **personalizar esta solución** para sus necesidades específicas, no dude en contactarnos. Estamos comprometidos con el **éxito de su práctica legal** y listos para demostrar el valor tangible que nuestra plataforma puede aportar a su organización.`;
+For more information on how we can **customize this solution** for your specific needs, please do not hesitate to contact us. We are committed to the **success of your legal practice** and ready to demonstrate the tangible value our platform can bring to your organization.`;
 
     const advancedOptions: PDFGenerationOptions = {
       content: longText,
-      title: "Propuesta de Servicio Legal Inteligente",
-      author: "Tomas - Asistente Legal IA",
-      subject: "Servicios de Inteligencia Artificial para el Sector Legal",
+      title: "Intelligent Legal Service Proposal",
+      author: "Tomas - AI Legal Assistant",
+      subject: "Artificial Intelligence Services for the Legal Sector",
       keywords: [
-        "IA",
+        "AI",
         "legal",
-        "automatización",
-        "análisis",
-        "contratos",
-        "eficiencia",
+        "automation",
+        "analysis",
+        "contracts",
+        "efficiency",
       ],
       pageSize: "A4",
       orientation: "portrait",
@@ -185,27 +185,39 @@ Para más información sobre cómo podemos **personalizar esta solución** para 
       lineHeight: 1.4,
       margins: 50,
       coverPage: {
-        title: "Propuesta de Servicio Legal Inteligente",
-        author: "Tomas - Asistente Legal IA",
+        title: "Intelligent Legal Service Proposal",
+        author: "Tomas - AI Legal Assistant",
+        subtitle: "Transforming Legal Practice with Artificial Intelligence",
+        documentType: "Service Proposal",
+        clientName: "Law Firms and Legal Professionals",
+        // referenceNumber: "PROP-2025-001",
         logo: {
           data: logoData,
           name: "logo",
-          width: 120,
-          height: 60,
+          width: 40,
+          height: 40,
           format: "png",
         },
         showDate: true,
-        customDate: "Enero 2025",
+        customDate: "June 2025",
+        contactInfo: {
+          firmName: "Tomas Legal AI",
+          address: "Advanced Legal Artificial Intelligence Platform",
+          // phone: "+1 (555) 123-4567",
+          email: "eugenio@iustomas.ai",
+          website: "www.iustomas.ai",
+        },
+        // confidentialityNotice: "Este documento contiene información confidencial y está destinado únicamente al destinatario especificado.",
       },
       links: [
         {
-          text: "Más información sobre nuestros servicios",
-          url: "https://tomas-legal-ai.com",
+          text: "More information about our services",
+          url: "https://iustomas.ai",
           fontSize: 12,
         },
         {
-          text: "Contacto para consultas",
-          url: "mailto:contacto@tomas-legal-ai.com",
+          text: "Contact for inquiries",
+          url: "mailto:eugenio@iustomas.ai",
           fontSize: 12,
         },
       ],
@@ -228,4 +240,107 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   exampleUsage();
 }
 
-export { exampleUsage };
+/**
+ * Example usage of Tomas PDF service with professional cover page
+ */
+async function exampleTomasPDF() {
+  try {
+    console.log("Generating Tomas PDF with professional cover page...");
+
+    // Import Tomas PDF service
+    const { tomasPdfService } = await import("../services/pdf/index.js");
+
+    const proposalContent = `**Legal Service Proposal**
+
+This document presents a comprehensive proposal for our AI-powered legal assistance services.
+
+## **Service Overview**
+
+Our advanced AI system provides:
+
+### **1. Document Analysis**
+- Automated contract review
+- Risk assessment
+- Compliance checking
+
+### **2. Legal Research**
+- Case law analysis
+- Precedent identification
+- Regulatory updates
+
+### **3. Document Generation**
+- Contract drafting
+- Legal briefs
+- Compliance reports
+
+## **Benefits**
+
+- **60-80% time reduction** in document review
+- **40-60% increase** in case handling capacity
+- **30-50% improvement** in accuracy
+- **25-40% reduction** in operational costs
+
+## **Technology Stack**
+
+- **Machine Learning** specialized in legal language
+- **Natural Language Processing** for document understanding
+- **Semantic Analysis** for deep comprehension
+- **Secure Cloud Infrastructure** with end-to-end encryption
+
+## **Implementation**
+
+Our team provides complete support including:
+- Custom configuration
+- Staff training
+- Data migration
+- System integration
+
+## **Pricing**
+
+Transparent pricing model with:
+- Scalable pricing based on usage
+- No hidden costs
+- Free trial periods
+- Long-term commitment discounts
+
+## **Conclusion**
+
+This revolutionary platform represents the future of legal practice, combining human expertise with technological efficiency.`;
+
+    const result = await tomasPdfService.generatePdfProposal({
+      userAddress: "0x1234567890123456789012345678901234567890",
+      content: proposalContent,
+      title: "AI-Powered Legal Services Proposal",
+      author: "Tomas - AI Legal Assistant",
+      customDate: "June 2025",
+      coverPage: {
+        subtitle: "Revolutionizing Legal Practice with Artificial Intelligence",
+        documentType: "Professional Service Proposal",
+        clientName: "Innovative Law Firm",
+        referenceNumber: "PROP-2025-001",
+        contactInfo: {
+          firmName: "Tomas Legal AI",
+          address: "Advanced Legal Artificial Intelligence Platform",
+          phone: "+1 (555) 123-4567",
+          email: "eugenio@iustomas.ai",
+          website: "www.iustomas.ai",
+        },
+      },
+      filename: "tomas-proposal-example.pdf",
+      uploadToCloud: false, // Set to true to upload to cloud storage
+    });
+
+    console.log(
+      `Tomas PDF generated successfully: ${result.size} bytes, ${result.pageCount} pages`
+    );
+    console.log("File saved as: tomas-proposal-example.pdf");
+
+    if (result.cloudStorageUrl) {
+      console.log(`Cloud storage URL: ${result.cloudStorageUrl}`);
+    }
+  } catch (error) {
+    console.error("Error generating Tomas PDF:", error);
+  }
+}
+
+export { exampleUsage, exampleTomasPDF };

@@ -42,12 +42,35 @@ export interface PDFCoverPageOptions {
   title: string;
   /** Author name */
   author: string;
+  /** Subtitle for the cover page */
+  subtitle?: string;
   /** Logo image data */
   logo?: PDFImageData;
   /** Show date on cover page */
   showDate?: boolean;
   /** Custom date text */
   customDate?: string;
+  /** Contact information */
+  contactInfo?: {
+    /** Firm name */
+    firmName?: string;
+    /** Address */
+    address?: string;
+    /** Phone number */
+    phone?: string;
+    /** Email address */
+    email?: string;
+    /** Website */
+    website?: string;
+  };
+  /** Document type (e.g., "Propuesta de Servicios", "Análisis Legal") */
+  documentType?: string;
+  /** Client name (if applicable) */
+  clientName?: string;
+  /** Reference number */
+  referenceNumber?: string;
+  /** Confidentiality notice */
+  confidentialityNotice?: string;
 }
 
 /**

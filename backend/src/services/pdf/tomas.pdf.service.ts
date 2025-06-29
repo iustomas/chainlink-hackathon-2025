@@ -24,6 +24,7 @@ import { vaultService } from "../firestore/vault.service.js";
 import {
   TomasProposalOptions,
   TomasInvestigatoOptions,
+  TomasRespondeoOptions,
 } from "./types/tomas.pdf.types.js";
 
 /**
@@ -39,6 +40,7 @@ export class TomasPDFService {
       "src",
       "assets",
       "logo",
+      // "logo-black-bg.png"
       "black.png"
     );
   }
@@ -59,14 +61,14 @@ export class TomasPDFService {
       // Load logo data
       const logoData = await this.loadLogoData();
 
-      // Build advanced PDF options with cover page
+      // Build advanced PDF options with professional cover page
       const pdfOptions: PDFGenerationOptions = {
         content: options.content,
         title: options.title || "Legal Service Proposal",
-        author: options.author || "Tomas - Crypto/Onchain Legal Assistant",
+        author: options.author || "Tomas - AI Legal Assistant",
         subject:
           options.subject ||
-          "Artificial Intelligence Services for the Crypto/Onchain Legal Sector",
+          "Artificial Intelligence Services for the Legal Sector",
         keywords: options.keywords || [
           "AI",
           "legal",
@@ -74,37 +76,40 @@ export class TomasPDFService {
           "web3",
           "onchain",
           "blockchain",
+          "automation",
         ],
-        pageSize: "Legal",
+        pageSize: "A4",
         orientation: "portrait",
         fontSize: 11,
         lineHeight: 1.4,
         margins: 50,
         coverPage: {
           title: options.title || "Legal Service Proposal",
-          author: options.author || "Tomas - Crypto/Onchain Legal Assistant",
+          author: options.author || "Tomas - AI Legal Assistant",
+          subtitle:
+            options.coverPage?.subtitle ||
+            "Transforming Legal Practice with Artificial Intelligence",
+          documentType: options.coverPage?.documentType || "Service Proposal",
+          clientName: options.userAddress,
+          referenceNumber:
+            options.coverPage?.referenceNumber || `PROP-${Date.now()}`,
           logo: {
             data: logoData,
             name: "tomas_logo",
-            width: 120,
-            height: 60,
+            width: 50,
+            height: 50,
             format: "png",
           },
           showDate: true,
           customDate: options.customDate || this.getCurrentDate(),
+          contactInfo: options.coverPage?.contactInfo || {
+            firmName: "Tomas Legal AI",
+            address: "Advanced Legal Artificial Intelligence Platform",
+            email: "eugenio@iustomas.ai",
+            website: "www.iustomas.ai",
+          },
+          confidentialityNotice: options.coverPage?.confidentialityNotice,
         },
-        links: options.links || [
-          {
-            text: "More information about our services",
-            url: "https://tomas-legal-ai.com",
-            fontSize: 12,
-          },
-          {
-            text: "Contact for inquiries",
-            url: "mailto:contacto@tomas-legal-ai.com",
-            fontSize: 12,
-          },
-        ],
       };
 
       // Generate PDF using the base service
@@ -195,14 +200,13 @@ export class TomasPDFService {
       // Load logo data
       const logoData = await this.loadLogoData();
 
-      // Build advanced PDF options with cover page
+      // Build advanced PDF options with professional cover page
       const pdfOptions: PDFGenerationOptions = {
         content: options.content,
-        title: options.title || "Investigato Report",
-        author: options.author || "Tomas - Crypto/Onchain Legal Assistant",
+        title: options.title || "Deep Research Report",
+        author: options.author || "Tomas - AI Legal Assistant",
         subject:
-          options.subject ||
-          "Deep Research Report for Crypto/Onchain Legal Analysis",
+          options.subject || "Comprehensive Legal Research and Analysis Report",
         keywords: options.keywords || [
           "AI",
           "legal",
@@ -212,37 +216,42 @@ export class TomasPDFService {
           "blockchain",
           "research",
           "investigation",
+          "analysis",
         ],
-        pageSize: "Legal",
+        pageSize: "A4",
         orientation: "portrait",
         fontSize: 11,
         lineHeight: 1.4,
         margins: 50,
         coverPage: {
-          title: options.title || "Investigato Report",
-          author: options.author || "Tomas - Crypto/Onchain Legal Assistant",
+          title: options.title || "Deep Research Report",
+          author: options.author || "Tomas - AI Legal Assistant",
+          subtitle:
+            options.coverPage?.subtitle ||
+            "Comprehensive Legal Research and Analysis",
+          documentType: options.coverPage?.documentType || "Research Report",
+          clientName:
+            options.coverPage?.clientName ||
+            "Legal Professionals and Law Firms",
+          referenceNumber:
+            options.coverPage?.referenceNumber || `RES-${Date.now()}`,
           logo: {
             data: logoData,
             name: "tomas_logo",
-            width: 120,
-            height: 60,
+            width: 50,
+            height: 50,
             format: "png",
           },
           showDate: true,
           customDate: options.customDate || this.getCurrentDate(),
+          contactInfo: options.coverPage?.contactInfo || {
+            firmName: "Tomas Legal AI",
+            address: "Advanced Legal Artificial Intelligence Platform",
+            email: "eugenio@iustomas.ai",
+            website: "www.iustomas.ai",
+          },
+          confidentialityNotice: options.coverPage?.confidentialityNotice,
         },
-        links: options.links || [
-          {
-            text: "More information about our services",
-            url: "https://tomas-legal-ai.com",
-            fontSize: 12,
-          },
-          {
-            text: "Contact for inquiries",
-            url: "mailto:contacto@tomas-legal-ai.com",
-            fontSize: 12,
-          },
-        ],
       };
 
       // Generate PDF using the base service
@@ -324,7 +333,7 @@ export class TomasPDFService {
    * @returns Promise with PDF generation result including cloud storage URL
    */
   async generatePdfRespondeo(
-    options: TomasProposalOptions
+    options: TomasRespondeoOptions
   ): Promise<PDFGenerationResult & { cloudStorageUrl?: string }> {
     let tempFilePath: string | undefined;
 
@@ -334,14 +343,13 @@ export class TomasPDFService {
       // Load logo data
       const logoData = await this.loadLogoData();
 
-      // Build advanced PDF options with cover page
+      // Build advanced PDF options with professional cover page
       const pdfOptions: PDFGenerationOptions = {
         content: options.content,
-        title: options.title || "Final Legal Response",
-        author: options.author || "Tomas - Crypto/Onchain Legal Assistant",
+        title: options.title || "Legal Response and Analysis",
+        author: options.author || "Tomas - AI Legal Assistant",
         subject:
-          options.subject ||
-          "Final Legal Response and Analysis for Crypto/Onchain Legal Case",
+          options.subject || "Comprehensive Legal Response and Case Analysis",
         keywords: options.keywords || [
           "AI",
           "legal",
@@ -351,38 +359,42 @@ export class TomasPDFService {
           "blockchain",
           "response",
           "analysis",
-          "final",
+          "case",
         ],
-        pageSize: "Legal",
+        pageSize: "A4",
         orientation: "portrait",
         fontSize: 11,
         lineHeight: 1.4,
         margins: 50,
         coverPage: {
-          title: options.title || "Final Legal Response",
-          author: options.author || "Tomas - Crypto/Onchain Legal Assistant",
+          title: options.title || "Legal Response and Analysis",
+          author: options.author || "Tomas - AI Legal Assistant",
+          subtitle:
+            options.coverPage?.subtitle ||
+            "Comprehensive Legal Response and Case Analysis",
+          documentType: options.coverPage?.documentType || "Legal Response",
+          clientName:
+            options.coverPage?.clientName ||
+            "Legal Professionals and Law Firms",
+          referenceNumber:
+            options.coverPage?.referenceNumber || `RESP-${Date.now()}`,
           logo: {
             data: logoData,
             name: "tomas_logo",
-            width: 120,
-            height: 60,
+            width: 50,
+            height: 50,
             format: "png",
           },
           showDate: true,
           customDate: options.customDate || this.getCurrentDate(),
+          contactInfo: options.coverPage?.contactInfo || {
+            firmName: "Tomas Legal AI",
+            address: "Advanced Legal Artificial Intelligence Platform",
+            email: "eugenio@iustomas.ai",
+            website: "www.iustomas.ai",
+          },
+          confidentialityNotice: options.coverPage?.confidentialityNotice,
         },
-        links: options.links || [
-          {
-            text: "More information about our services",
-            url: "https://iustomas.ai",
-            fontSize: 12,
-          },
-          {
-            text: "Contact for inquiries",
-            url: "mailto:eugenio@iustomas.ai",
-            fontSize: 12,
-          },
-        ],
       };
 
       // Generate PDF using the base service
@@ -480,11 +492,11 @@ export class TomasPDFService {
         },
         investigato: {
           description: "Dossier report generated by Tomas",
-          tags: ["research", "document"],
+          tags: ["research", "document", "deliverable"],
         },
         respondeo: {
           description: "Final legal response document generated by Tomas",
-          tags: ["final", "document", "delivery"],
+          tags: ["final", "document", "deliverable"],
         },
       };
 

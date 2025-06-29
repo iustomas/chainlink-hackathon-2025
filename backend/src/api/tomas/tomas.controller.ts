@@ -38,8 +38,12 @@ import { jsonExtractorService } from "../../services/json-extractor/index.js";
 
 // tomas service
 import { tomasService } from "../../services/tomas/index.js";
-import { pdfService, tomasPdfService } from "@/services/pdf/index.js";
-import { formatAddress } from "@/utils/format-address.js";
+
+// tomas pdf service
+import { tomasPdfService } from "../../services/pdf/index.js";
+
+// utils
+import { formatAddress } from "../../utils/format-address.js";
 
 // controller
 export const tomasController = {
@@ -267,6 +271,7 @@ export const tomasController = {
   },
 
   // (Cognitio + Investigato + Respondeo)
+  // TODO: Terminar scriptum, formatear output de investigato y respondeo. Verificar con Eugenio si esto es lo que espera.
   scriptum: async (c: Context) => {
     let body: ScriptumRequest | undefined;
 
