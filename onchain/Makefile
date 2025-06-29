@@ -116,33 +116,24 @@ deploy:
 # Deploy without verification (non-interactive)
 deploy-quick:
 	@echo "Select the contract to deploy:"
-	@select opt in "IntakePayment" "ConsumerSimpleImproved9" "ConsumerSimpleWithVRF6" "TomasSubscription" "Exit"; do \
+	@select opt in "IntakePayment" "ConsumerSimpleImproved9" "ConsumerSimpleWithVRF6" "TomasSubscription" "PayProposal" "Exit"; do \
 		case $$REPLY in \
 			1) MODULE="IntakePayment"; break;; \
 			2) MODULE="ConsumerSimpleImproved9"; break;; \
 			3) MODULE="ConsumerSimpleWithVRF6"; break;; \
 			4) MODULE="TomasSubscription"; break;; \
-			5) echo "Operation cancelled."; exit 1;; \
+			5) MODULE="PayProposal"; break;; \
+			6) echo "Operation cancelled."; exit 1;; \
 			*) echo "Invalid option.";; \
 		esac; \
 	done; \
 	npx hardhat ignition deploy ignition/modules/$$MODULE.ts --network $(NETWORK); \
 	echo "Deployment completed!"
 
-# verify-quick:
-# 	@echo "Verifying smart contract..."
-# 	@npx hardhat verify --network base 0xf0df2B71194F7adBa89fe47A5E14d07A14DF7261 0xf9b8fc078197181c841c296c876945aaa425b278 0x66756e2d626173652d6d61696e6e65742d310000000000000000000000000000 60 200000 0 1750719836
-# 	echo "All done!"
-
 verify-quick:
 	@echo "Verifying smart contract..."
-	@npx hardhat verify --network base 0xD7c4216Fd15706927520D3870e6C7eAE2aA30d99 0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70 0x4200000000000000000000000000000000000006
+	@npx hardhat verify --network base 0xe6c06b962f452139db35ac9be3dfb62422ba9798 0x93C2F31E0F48dbBa50c98eDd59511b6cd2B149Cf 0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70 0xD7c4216Fd15706927520D3870e6C7eAE2aA30d99 0xd5D517aBE5cF79B7e95eC98dB0f0277788aFF634 0x00b81b5a830cb0a4009fbd8904de511e28631e62ce5ad231373d3cdad373ccab 102282035841499285745888608454266153999213776268843959916517149319754593222582 0xf9b8fc078197181c841c296c876945aaa425b278 0x66756e2d626173652d6d61696e6e65742d310000000000000000000000000000 60 200000 0 1750719836
 	echo "All done!"
-
-# verify-quick:
-# 	@echo "Verifying smart contract..."
-# 	@npx hardhat verify --network base 0x4Ff4540a8B10eDCD6f1A52890A0cc3822667F2Df 0xf9b8fc078197181c841c296c876945aaa425b278 0x66756e2d626173652d6d61696e6e65742d310000000000000000000000000000 60 200000 0xd5D517aBE5cF79B7e95eC98dB0f0277788aFF634 0x00b81b5a830cb0a4009fbd8904de511e28631e62ce5ad231373d3cdad373ccab 102282035841499285745888608454266153999213776268843959916517149319754593222582 0 1750719836
-# 	echo "All done!"
 
 # Default target
 .DEFAULT_GOAL := help

@@ -10,6 +10,7 @@ import Image from "next/image";
 // components
 import Navbar from "@/components/Navbar";
 import HowItWorksSection from "@/components/HowItWorksSection";
+import Pricing from "@/components/Pricing";
 
 export default function Home() {
   const [isImageLoaded, setIsImageLoaded] = useState(false);
@@ -123,6 +124,8 @@ export default function Home() {
       </section>
 
       <HowItWorksSection />
+
+      <Pricing />
     </main>
   );
 }

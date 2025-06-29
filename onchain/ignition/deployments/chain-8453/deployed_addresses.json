@@ -1,8 +1,3 @@
 {
-  "ConsumerSimpleWithVRF3#ConsumerSimpleWithVRF3": "0x968b16ec27DCD2435FF8C368e82C6E6E0e84fD3d",
-  "ConsumerSimpleWithVRF4#ConsumerSimpleWithVRF4": "0x7D4e41f21BdA62087B258AC0Cc4546843aca862E",
-  "ConsumerSimpleWithVRF5#ConsumerSimpleWithVRF5": "0xBAEA963ADB79d1F5Ce6F0D18c95c7Bf7CE97A9a1",
-  "ConsumerSimpleWithVRF6#ConsumerSimpleWithVRF6": "0x4Ff4540a8B10eDCD6f1A52890A0cc3822667F2Df",
-  "ConsumerSimpleImproved9#ConsumerSimpleImproved9": "0xf0df2B71194F7adBa89fe47A5E14d07A14DF7261",
-  "TomasSubscription#TomasSubscription": "0xD7c4216Fd15706927520D3870e6C7eAE2aA30d99"
+  "PayProposal#TomasPayProposalV2": "0xE6C06b962F452139DB35Ac9Be3dFb62422Ba9798"
 }

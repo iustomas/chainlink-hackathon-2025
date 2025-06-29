@@ -1,21 +1,22 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-/* ══════════════════════════════════════════
-   ░░  External deps
-   ══════════════════════════════════════════ */
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+// OpenZeppelin imports
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
+// Chainlink price feed imports
 import "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";  
+
+// Chainlink functions imports
 import "@chainlink/contracts/src/v0.8/functions/v1_0_0/FunctionsClient.sol";
 import "@chainlink/contracts/src/v0.8/functions/v1_0_0/libraries/FunctionsRequest.sol";
+
+// Chainlink VRF imports
 import "@chainlink/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol";
 import "@chainlink/contracts/src/v0.8/vrf/dev/interfaces/IVRFCoordinatorV2Plus.sol";
 
-/* ══════════════════════════════════════════
-   ░░  Minimal interface to TomasSubscription
-   ══════════════════════════════════════════ */
+// Minimal interface to TomasSubscription
 interface ITomasSubscription {
     function hasActiveSubscription(address user) external view returns (bool);
 }
@@ -34,19 +35,19 @@ interface ITomasSubscription {
 * ────────────────────────────────────────────────────────────────
 * Core flow
 * ────────────────────────────────────────────────────────────────
-* • Price conversion  : On-chain via the Chainlink ETH/USD price feed (8 decimals). 
-* • Payment collection : If `hasActiveSubscription(user) == false`, the contract
+* • Price conversion     : On-chain via the Chainlink ETH/USD price feed (8 decimals). 
+* • Payment collection   : If `hasActiveSubscription(user) == false`, the contract
 *                        calculates the ETH-denominated amount and forwards it
 *                        to the `owner()`, refunding any excess. 
-* • Audit lottery     : After every successful payment (or free pass), the
+* • Audit lottery        : After every successful payment (or free pass), the
 *                        contract requests 1 random word from Chainlink VRF
 *                        v2.5. Roughly 1 in 5 executions trigger an off-chain
-*                        “human-in-the-loop” audit by calling a backend endpoint
+*                        "human-in-the-loop" audit by calling a backend endpoint
 *                        through Chainlink Functions, authenticated with
 *                        DON-hosted secrets.
 *
 */
-contract TomasPayProposal is
+contract TomasPayProposal is    
     ReentrancyGuard,
     FunctionsClient,
     VRFConsumerBaseV2Plus
@@ -107,7 +108,7 @@ contract TomasPayProposal is
     event RequestQueued(uint256 indexed vrfRequestId, address indexed caller);
     event VRFReceived(uint256 indexed vrfRequestId, uint256 randomWord);
     event SkippedRequest(uint256 indexed vrfRequestId, uint256 randomWord);
-    event FunctionsRequest(uint256 indexed vrfRequestId, bytes32 functionsReqId);
+    event FunctionsRequestSent(uint256 indexed vrfRequestId, bytes32 functionsReqId);
 
     constructor(
         /* owner */
@@ -132,10 +133,9 @@ contract TomasPayProposal is
     )
         FunctionsClient(_functionsRouter)
         VRFConsumerBaseV2Plus(_vrfCoordinator)
-    {
-        // Transfer ownership to the specified owner
+    {        
         transferOwnership(_owner);
-        
+           
         priceFeed = AggregatorV3Interface(_priceFeed);
         subs      = ITomasSubscription(_subscriptionContract);
 
@@ -266,7 +266,7 @@ contract TomasPayProposal is
             donId
         );
 
-        emit FunctionsRequest(vrfReqId, lastFunctionsRequestId);
+        emit FunctionsRequestSent(vrfReqId, lastFunctionsRequestId);
     }
 
     /* ─────────────────────────────────────────────
