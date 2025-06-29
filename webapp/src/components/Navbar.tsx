@@ -127,8 +127,8 @@ export default function Navbar({ forceHover = false }: NavbarProps) {
               <Image
                 src={
                   shouldBeTransparent
-                    ? "/assets/logo/logo-white.svg"
-                    : "/assets/logo/logo-black.svg"
+                    ? "/assets/logo/white.svg"
+                    : "/assets/logo/black.svg"
                 }
                 alt="Tomas"
                 width={20}
@@ -255,7 +255,7 @@ export default function Navbar({ forceHover = false }: NavbarProps) {
           {/* Logo */}
           <Link href="/">
             <Image
-              src="/assets/logo/logo-black.svg"
+              src="/assets/logo/black.svg"
               alt="Tomas"
               width={80}
               height={80}

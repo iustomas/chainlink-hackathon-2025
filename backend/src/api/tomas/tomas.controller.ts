@@ -205,7 +205,7 @@ export const tomasController = {
           pdfFilename: cloudFilename,
           pdfSize: pdfResult.size,
           pdfPageCount: pdfResult.pageCount,
-          pdfCloudUrl: pdfResult.cloudStorageUrl, // Include cloud storage URL
+          pdfCloudUrl: pdfResult.cloudStorageUrl,
         });
       }
 

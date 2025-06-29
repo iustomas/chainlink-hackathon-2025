@@ -13,11 +13,11 @@ import HowItWorksSection from "@/components/HowItWorksSection";
 
 export default function Home() {
   const [isImageLoaded, setIsImageLoaded] = useState(false);
-  // const [showVideo, setShowVideo] = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
 
   const handleImageLoad = () => {
     setIsImageLoaded(true);
-    // setTimeout(() => setShowVideo(true), 5000);
+    setTimeout(() => setShowVideo(true), 5000);
   };
 
   return (
@@ -37,7 +37,7 @@ export default function Home() {
         />
 
         {/* Background Video */}
-        {/* <div
+        <div
           className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ${
             showVideo ? "opacity-100" : "opacity-0"
           }`}
@@ -52,7 +52,7 @@ export default function Home() {
           >
             <source src="/assets/video-cover-5.mp4" type="video/mp4" />
           </video>
-        </div> */}
+        </div>
 
         {/* Loading background color */}
         <div

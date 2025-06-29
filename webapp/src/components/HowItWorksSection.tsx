@@ -1,6 +1,10 @@
 "use client";
 
+// react
 import { useState, useEffect } from "react";
+
+// next
+import Image from "next/image";
 
 interface ChatMessage {
   id: number;
@@ -58,19 +62,26 @@ export default function HowItWorksSection() {
   ];
 
   useEffect(() => {
-    let intervalId: NodeJS.Timeout;
-    let timeoutId: NodeJS.Timeout;
+    let intervalId: NodeJS.Timeout | null = null;
+    let timeoutId: NodeJS.Timeout | null = null;
 
     const startAnimation = () => {
+      // Clear any existing timers
+      if (intervalId) clearInterval(intervalId);
+      if (timeoutId) clearTimeout(timeoutId);
+
       setCurrentMessageIndex(0);
 
       intervalId = setInterval(() => {
         setCurrentMessageIndex((prev) => {
           if (prev >= chatMessages.length - 1) {
             // Clear the interval when we reach the end
-            clearInterval(intervalId);
+            if (intervalId) {
+              clearInterval(intervalId);
+              intervalId = null;
+            }
 
-            // Wait 8 seconds total (3s pause + 5s wait) before restarting
+            // Wait 8 seconds before restarting
             timeoutId = setTimeout(() => {
               startAnimation();
             }, 8000);
@@ -89,7 +100,7 @@ export default function HowItWorksSection() {
       if (intervalId) clearInterval(intervalId);
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [chatMessages.length]);
+  }, []); // Remove chatMessages.length dependency to prevent re-runs
 
   const howItWorksSteps = [
     {
@@ -118,7 +129,7 @@ export default function HowItWorksSection() {
             href="https://www.linkedin.com/in/eugenio-voticky-sousa-92a23a2b0/"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[#4CA5E6] hover:text-[#38456D] underline transition-colors"
+            className="text-black underline transition-colors hover:text-gray-700"
           >
             Eugenio
           </a>
@@ -136,12 +147,19 @@ export default function HowItWorksSection() {
       return (
         <div
           key={message.id}
-          className={`flex items-start gap-3 justify-end transition-all duration-500 ${animationClass}`}
+          className={`flex w-full mb-6 transition-all duration-500 ${animationClass}`}
         >
-          <div className="bg-gradient-to-br from-[#4CA5E6] to-[#38456D] p-4 rounded-2xl rounded-tr-md shadow-sm max-w-[85%]">
-            <p className="text-sm text-white leading-relaxed">
+          <div className="flex flex-col w-full">
+            <div
+              className="px-5 py-3 rounded-2xl text-base w-full border"
+              style={{
+                background: "#FBFBF9",
+                borderColor: "#F0EEE7",
+                boxShadow: "none",
+              }}
+            >
               {message.message}
-            </p>
+            </div>
           </div>
         </div>
       );
@@ -151,47 +169,47 @@ export default function HowItWorksSection() {
       return (
         <div
           key={message.id}
-          className={`flex items-start gap-3 transition-all duration-500 ${animationClass}`}
+          className={`flex w-full mb-6 transition-all duration-500 ${animationClass}`}
         >
-          <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm overflow-hidden">
-            <img
-              src="/assets/tomas-avatar-v0.1.0.png"
-              alt="Tomas"
-              className="w-full h-full object-cover"
-            />
+          <div className="flex items-start mr-2">
+            <div
+              className="w-10 h-10 rounded-full flex items-center justify-center bg-[#F4F4F4] text-black text-2xl font-bold select-none mt-3"
+              style={{
+                fontFamily: "var(--font-serif), Georgia, serif",
+              }}
+            >
+              T
+            </div>
           </div>
-          <div className="bg-white p-4 rounded-2xl rounded-tl-md shadow-sm border border-gray-100 max-w-[85%]">
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <img
-                  src="/assets/pdf.jpg"
-                  alt="PDF Document"
-                  className="w-12 h-16 object-cover rounded-lg shadow-md"
+          <div className="flex flex-col w-full">
+            <div
+              className="px-5 py-3 rounded-2xl text-base w-full"
+              style={{
+                background: "white",
+                boxShadow: "none",
+              }}
+            >
+              <div className="flex items-center gap-4 p-4 border border-gray-200 rounded-xl shadow-sm w-full max-w-md mb-3">
+                <Image
+                  src="/assets/pdf.svg"
+                  alt="PDF icon"
+                  className="w-12 h-12 object-contain"
+                  width={48}
+                  height={48}
                 />
-              </div>
-              <div className="flex-1">
-                <h4 className="font-semibold text-gray-900 text-sm">
-                  Terms & Conditions
-                </h4>
-                <p className="text-xs text-gray-500">
-                  Movie Tokenization Platform • 3.1 MB
-                </p>
-                <div className="flex items-center gap-2 mt-2">
-                  <div className="w-full bg-gray-200 rounded-full h-1.5">
-                    <div
-                      className="bg-green-500 h-1.5 rounded-full animate-progress"
-                      style={{ width: "100%" }}
-                    ></div>
-                  </div>
-                  <span className="text-xs text-green-600 font-medium">
-                    Complete
+                <div className="flex flex-col flex-1 min-w-0">
+                  <span className="text-lg font-semibold truncate">
+                    Terms & Conditions
+                  </span>
+                  <span className="text-sm text-gray-500 truncate mt-1">
+                    Movie Tokenization Platform • 3.1 MB
                   </span>
                 </div>
               </div>
+              <p className="text-sm text-gray-700 leading-relaxed">
+                {message.message}
+              </p>
             </div>
-            <p className="text-sm text-gray-700 mt-3 leading-relaxed">
-              {message.message}
-            </p>
           </div>
         </div>
       );
@@ -201,19 +219,30 @@ export default function HowItWorksSection() {
     return (
       <div
         key={message.id}
-        className={`flex items-start gap-3 transition-all duration-500 ${animationClass}`}
+        className={`flex w-full mb-6 transition-all duration-500 ${animationClass}`}
       >
-        <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm overflow-hidden">
-          <img
-            src="/assets/tomas-avatar-v0.1.0.png"
-            alt="Tomas"
-            className="w-full h-full object-cover"
-          />
+        <div className="flex items-start mr-2">
+          <div
+            className="w-10 h-10 rounded-full flex items-center justify-center bg-[#F4F4F4] text-black text-2xl font-bold select-none mt-3"
+            style={{
+              fontFamily: "var(--font-serif), Georgia, serif",
+            }}
+          >
+            T
+          </div>
         </div>
-        <div className="bg-white p-4 rounded-2xl rounded-tl-md shadow-sm border border-gray-100 max-w-[85%]">
-          <p className="text-sm text-gray-700 leading-relaxed">
-            {message.message}
-          </p>
+        <div className="flex flex-col w-full">
+          <div
+            className="px-5 py-3 rounded-2xl text-base w-full"
+            style={{
+              background: "white",
+              boxShadow: "none",
+            }}
+          >
+            <p className="text-sm text-gray-700 leading-relaxed">
+              {message.message}
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -223,32 +252,34 @@ export default function HowItWorksSection() {
     <section className="bg-white py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl lg:text-center">
-          <h2 className="text-base font-semibold leading-7 text-[#4CA5E6]">
+          <div className="inline-flex items-center px-4 py-2 rounded-full bg-black text-white font-semibold text-sm mb-6">
             How it works
-          </h2>
-          <p className="mt-2 text-3xl font-bold tracking-tight text-[#38456D] sm:text-4xl">
-            Your web3 legal processes, simplified
-          </p>
+          </div>
 
-          <p className="mt-6 text-lg leading-8 text-[#38456D]/80">
+          <h2 className="text-4xl font-bold tracking-tight text-black sm:text-5xl lg:text-6xl">
+            Your web3 legal processes,{" "}
+            <span className="text-black">simplified</span>
+          </h2>
+
+          <p className="mt-6 text-xl leading-8 text-black/80 max-w-3xl mx-auto">
             Follow these simple steps to get your legal matters resolved
             efficiently and securely with Tomas.
           </p>
         </div>
 
-        <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
-          <div className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-2">
+        <div className="mx-auto mt-16 w-full sm:mt-20 lg:mt-24">
+          <div className="grid grid-cols-1 gap-x-24 gap-y-16 lg:grid-cols-2">
             {/* Left side: steps */}
             <div className="relative flex flex-col justify-center pl-9">
-              <div className="absolute left-0 top-0 h-full w-px bg-[#4CA5E6]/30"></div>
+              <div className="absolute left-0 top-0 h-full w-px bg-black/30"></div>
               {howItWorksSteps.map((step) => (
                 <div key={step.id} className="relative mb-12">
-                  <div className="absolute -left-1.5 top-1 h-3 w-3 rounded-full bg-[#4CA5E6]"></div>
                   <div className="flex items-baseline gap-x-4">
-                    <span className="font-mono text-lg font-semibold text-[#4CA5E6]">
+                    <span className="font-mono text-lg font-semibold text-black">
                       {step.id}
                     </span>
-                    <p className="text-lg leading-7 text-[#38456D]">
+
+                    <p className="text-lg leading-7 text-black">
                       {step.textWithLink || step.text}
                     </p>
                   </div>
@@ -258,7 +289,7 @@ export default function HowItWorksSection() {
 
             {/* Right side: animated chat mockup */}
             <div className="flex items-center justify-center">
-              <div className="w-full max-w-lg bg-gradient-to-br from-white to-gray-50 rounded-3xl border border-gray-100 shadow-xl p-6">
+              <div className="w-full max-w-5xl rounded-3xl border border-[#F0EEE7] shadow-xl p-8">
                 {/* Chat messages */}
                 <div className="space-y-4">
                   {chatMessages.map((message, index) =>
@@ -283,21 +314,8 @@ export default function HowItWorksSection() {
           }
         }
 
-        @keyframes progress {
-          from {
-            width: 0%;
-          }
-          to {
-            width: 100%;
-          }
-        }
-
         .animate-fade-in {
           animation: fade-in 0.5s ease-out forwards;
-        }
-
-        .animate-progress {
-          animation: progress 1s ease-out forwards;
         }
       `}</style>
     </section>

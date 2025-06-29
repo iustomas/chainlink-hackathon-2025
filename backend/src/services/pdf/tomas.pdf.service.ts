@@ -126,6 +126,7 @@ export class TomasPDFService {
           await this.saveToLocalFile(result.pdfBytes, tempFilePath);
           console.log(`PDF proposal saved temporarily as: ${tempFilePath}`);
 
+          // Upload to Google Cloud Storage
           cloudStorageUrl = await googleCloudStorageService.uploadFile(
             Buffer.from(result.pdfBytes),
             filename,
