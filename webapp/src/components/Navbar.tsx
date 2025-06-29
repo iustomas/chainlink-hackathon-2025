@@ -131,9 +131,9 @@ export default function Navbar({ forceHover = false }: NavbarProps) {
                     : "/assets/logo/logo-black.svg"
                 }
                 alt="Tomas"
-                width={80}
-                height={80}
-                className="w-20 h-20"
+                width={20}
+                height={20}
+                className="w-10 h-10"
               />
             </Link>
 
@@ -235,16 +235,16 @@ export default function Navbar({ forceHover = false }: NavbarProps) {
               </button>
             )}
 
-            <Link href="/contact-sales">
+            <Link href="/chat-provisory">
               <button
                 className={`ml-2 px-4 py-1.5 rounded-[10px] font-semibold transition-all duration-200 cursor-pointer hover:scale-105 ${
                   forceHover
                     ? "bg-black text-white"
-                    : "bg-white text-black hover:bg-black hover:text-white"
+                    : "bg-white text-black hover:bg-black hover:text-white border border-white"
                 }`}
-                title="Contact our sales team"
+                title="Start legal case"
               >
-                Contact
+                Start legal case
               </button>
             </Link>
           </div>
