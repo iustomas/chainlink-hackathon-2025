@@ -129,9 +129,14 @@ deploy-quick:
 	npx hardhat ignition deploy ignition/modules/$$MODULE.ts --network $(NETWORK); \
 	echo "Deployment completed!"
 
+# verify-quick:
+# 	@echo "Verifying smart contract..."
+# 	@npx hardhat verify --network base 0xf0df2B71194F7adBa89fe47A5E14d07A14DF7261 0xf9b8fc078197181c841c296c876945aaa425b278 0x66756e2d626173652d6d61696e6e65742d310000000000000000000000000000 60 200000 0 1750719836
+# 	echo "All done!"
+
 verify-quick:
 	@echo "Verifying smart contract..."
-	@npx hardhat verify --network base 0xf0df2B71194F7adBa89fe47A5E14d07A14DF7261 0xf9b8fc078197181c841c296c876945aaa425b278 0x66756e2d626173652d6d61696e6e65742d310000000000000000000000000000 60 200000 0 1750719836
+	@npx hardhat verify --network base 0xD7c4216Fd15706927520D3870e6C7eAE2aA30d99 0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70 0x4200000000000000000000000000000000000006
 	echo "All done!"
 
 # verify-quick:
@@ -139,56 +144,7 @@ verify-quick:
 # 	@npx hardhat verify --network base 0x4Ff4540a8B10eDCD6f1A52890A0cc3822667F2Df 0xf9b8fc078197181c841c296c876945aaa425b278 0x66756e2d626173652d6d61696e6e65742d310000000000000000000000000000 60 200000 0xd5D517aBE5cF79B7e95eC98dB0f0277788aFF634 0x00b81b5a830cb0a4009fbd8904de511e28631e62ce5ad231373d3cdad373ccab 102282035841499285745888608454266153999213776268843959916517149319754593222582 0 1750719836
 # 	echo "All done!"
 
-# =============================================================================
-# UTILITY COMMANDS
-# =============================================================================
-
-# Show project status
-status:
-	@echo "Project Status:"
-	@echo "Node.js version:" && node --version
-	@echo "npm version:" && npm --version
-	@echo "Hardhat version:" && npx hardhat --version
-	@echo "Network: $(NETWORK)"
-	@echo "Module: $(MODULE)"
-	@echo "Chain ID: $(CHAIN_ID)"
-
-# Show help
-help:
-	@echo "============================================"
-	@echo "Chainlink Hackathon 2025 - Available Commands"
-	@echo "============================================"
-	@echo ""
-	@echo "Setup:"
-	@echo "  setup                    Complete project setup (run first)"
-	@echo "  install                  Install dependencies"
-	@echo ""
-	@echo "Local Development:"
-	@echo "  start-local-functions    Start local Chainlink Functions testnet"
-	@echo "  start-local-functions-silent  Start testnet (silent mode)"
-	@echo ""
-	@echo "Smart Contracts:"
-	@echo "  compile                  Compile smart contracts"
-	@echo "  clean                    Clean build artifacts"
-	@echo "  test                     Run tests"
-	@echo "  test-coverage            Run tests with coverage"
-	@echo ""
-	@echo "Deployment:"
-	@echo "  deploy                   Deploy with verification (interactive, choose contract)"
-	@echo "  deploy-quick             Deploy without verification (choose contract)"
-	@echo ""
-	@echo "Utility:"
-	@echo "  status                   Show project status"
-	@echo "  help                     Show this help message"
-	@echo ""
-	@echo "Quick Start:"
-	@echo "  1. make setup"
-	@echo "  2. make compile"
-	@echo "  3. make test"
-	@echo "  4. make start-local-functions"
-	@echo ""
-
 # Default target
 .DEFAULT_GOAL := help
 
-.PHONY: setup install start-local-functions start-local-functions-silent compile clean test test-coverage deploy deploy-quick status help
+.PHONY: setup install start-local-functions start-local-functions-silent compile clean test test-coverage deploy deploy-quick
