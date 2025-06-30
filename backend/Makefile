@@ -1,7 +1,7 @@
 GIT_SHA := $(shell git rev-parse --short=7 HEAD)
 GOOGLE_CLOUD_PROJECT_ID := $(shell grep '^GOOGLE_CLOUD_PROJECT_ID=' .env | cut -d '=' -f2)
 REGION=us-central1
-APP_NAME=investigato
+APP_NAME=tomas-web3-api
 
 build:
 	@echo "[build] Cleaning and building..."

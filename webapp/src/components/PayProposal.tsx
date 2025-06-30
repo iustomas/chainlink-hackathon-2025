@@ -10,58 +10,42 @@ import Link from "next/link";
 // react icons
 import { LuChevronDown, LuChevronUp } from "react-icons/lu";
 
+// wagmi
+import { useWriteContract } from "wagmi";
+
+// onchain
+import PAY_PROPOSAL_ABI from "../../onchain/PayProposalABI.json";
+import { PAY_PROPOSAL_CONTRACT_ADDRESS } from "../../onchain";
+
 interface PayProposalProps {
   price: number;
   onPay: () => void;
-  userAddress: string;
 }
 
 /**
  * PayProposal component for handling proposal payment with collapse/expand functionality
  */
-export default function PayProposal({
-  price,
-  onPay,
-  userAddress,
-}: PayProposalProps) {
+export default function PayProposal({ price, onPay }: PayProposalProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+
+  const { writeContract, isPending } = useWriteContract();
 
   const handlePayClick = async () => {
-    if (isLoading) return;
+    if (isPending) return;
 
-    setIsLoading(true);
     try {
-      // TODO: change this to interact with the contract
-      // Call the scriptum endpoint
-      const response = await fetch("http://localhost:3000/tomas/scriptum", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userAddress: userAddress,
-          contractAddress: "0x4508b91ec39770c8457b7c9ab9b60c845b09d3dd",
-          timestamp: new Date().toISOString(),
-          escalateToHumanLawyer: false,
-        }),
+      await writeContract({
+        address: PAY_PROPOSAL_CONTRACT_ADDRESS as `0x${string}`,
+        abi: PAY_PROPOSAL_ABI,
+        functionName: "payProposal",
+        value: BigInt(0), // Set to 0 as requested
       });
 
-      if (response.ok) {
-        console.log("Scriptum endpoint called successfully");
-
-        onPay();
-      } else {
-        console.error("Failed to call scriptum endpoint:", response.statusText);
-
-        onPay();
-      }
-    } catch (error) {
-      console.error("Error calling scriptum endpoint:", error);
-
+      console.log("PayProposal contract called successfully");
       onPay();
-    } finally {
-      setIsLoading(false);
+    } catch (error) {
+      console.error("Error calling PayProposal contract:", error);
+      onPay();
     }
   };
 
@@ -166,10 +150,10 @@ export default function PayProposal({
 
           <button
             onClick={handlePayClick}
-            disabled={isLoading}
+            disabled={isPending}
             className="w-full bg-black text-white rounded-xl font-semibold transition-all duration-300 ease-in-out shadow-md cursor-pointer flex items-center justify-center gap-2 hover:bg-[#2c3552] hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 px-6 py-4 text-lg"
           >
-            {isLoading ? (
+            {isPending ? (
               <>
                 <span className="loader-tomas inline-block w-4 h-4 border-2 border-white rounded-full animate-spin"></span>
                 <span>Processing Payment...</span>

@@ -107,6 +107,13 @@ export class ContractVerificationService {
     if (!this.allowedContract) {
       return true;
     }
+
+    console.log("allowedContract");
+    console.log(this.allowedContract);
+
+    console.log("contractAddress");
+    console.log(contractAddress);
+
     return contractAddress.toLowerCase() === this.allowedContract;
   }
 }

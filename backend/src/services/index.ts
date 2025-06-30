@@ -6,3 +6,4 @@ export * from "./prompt-builder/index.js";
 export * from "./json-extractor/index.js";
 export * from "./firestore/vault.service.js";
 export * from "./pdf/index.js";
+export * from "./contract/index.js";

@@ -22,7 +22,7 @@ export interface ScriptumRequest {
   userAddress: string;
   contractAddress: string;
   timestamp: string;
-  escalateToHumanLawyer: boolean;
+  escalateToHuman: boolean;
 }
 
 export interface EscalateToLawyerRequest {

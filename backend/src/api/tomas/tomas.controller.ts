@@ -21,6 +21,9 @@ import { PROVIDERS, MODELS } from "../../services/llm/lllm.constants.js";
 // contract verification service
 import { contractVerificationService } from "../../services/contract-verification/index.js";
 
+// contract service
+import { contractService } from "../../services/contract/index.js";
+
 // email service
 import { getEmailServiceManager } from "../../services/email/index.js";
 
@@ -49,7 +52,7 @@ import { formatAddress } from "../../utils/format-address.js";
 export const tomasController = {
   // talk with tomas praefatio
   talkWithTomasPraefatio: async (c: Context) => {
-    const SUFFICIENCY_SCORE_THRESHOLD = 0.75;
+    const SUFFICIENCY_SCORE_THRESHOLD = 0.6;
 
     let body: TalkWithTomasRequest | undefined;
 
@@ -157,9 +160,9 @@ export const tomasController = {
       // TODO: Eliminar esta logica de prueba
       // Generate proposal if sufficiency score is high enough
       if (
-        // typeof sufficiencyScore === "number" &&
-        // sufficiencyScore >= SUFFICIENCY_SCORE_THRESHOLD
-        true
+        typeof sufficiencyScore === "number" &&
+        sufficiencyScore >= SUFFICIENCY_SCORE_THRESHOLD
+        // true
       ) {
         console.log("Generating proposal");
 
@@ -195,6 +198,24 @@ export const tomasController = {
           jsonExtractionResult.data?.sufficiency_score,
           jsonExtractionResultProposal.data?.price || 0
         );
+
+        // Set price in contract
+        try {
+          const priceInUSD = jsonExtractionResultProposal.data?.price || 0;
+          // Convert price to nearest integer (e.g., $100.5 -> 100, $100.7 -> 101)
+          const priceInUSDInteger = Math.round(priceInUSD);
+
+          if (priceInUSDInteger > 0) {
+            const txHash = await contractService.setProposalPriceForUser(
+              userAddress,
+              priceInUSDInteger
+            );
+            console.log(`Contract transaction successful. Hash: ${txHash}`);
+          }
+        } catch (contractError) {
+          console.error("Error setting price in contract:", contractError);
+          // Continue execution even if contract call fails
+        }
 
         return c.json({
           success: true,
@@ -279,6 +300,12 @@ export const tomasController = {
       body = await c.req.json();
       const headers = c.req.header();
 
+      console.log("body");
+      console.log(body);
+
+      console.log("headers");
+      console.log(headers);
+
       // Validate request
       const validationErrors = validateScriptumRequest(body);
 
@@ -296,19 +323,19 @@ export const tomasController = {
       const validatedBody = body as ScriptumRequest;
 
       // Verify that the request comes from an authorized contract
-      // if (
-      //   !contractVerificationService.verifyContractCall(validatedBody, headers)
-      // ) {
-      //   return c.json(
-      //     {
-      //       success: false,
-      //       error: "Contract verification failed",
-      //       message:
-      //         "Only the authorized smart contract may access this endpoint",
-      //     },
-      //     403
-      //   );
-      // }
+      if (
+        !contractVerificationService.verifyContractCall(validatedBody, headers)
+      ) {
+        return c.json(
+          {
+            success: false,
+            error: "Contract verification failed",
+            message:
+              "Only the authorized smart contract may access this endpoint",
+          },
+          403
+        );
+      }
 
       const conversationHistory =
         await conversationHistoryService.getConversationHistory(
@@ -447,7 +474,7 @@ export const tomasController = {
       });
 
       // --- Step 5: Escalate to Human Lawyer if requested ---
-      if (validatedBody.escalateToHumanLawyer) {
+      if (validatedBody.escalateToHuman) {
         const emailResult = await getEmailServiceManager().sendEscalationEmail({
           userAddress: validatedBody.userAddress,
         });

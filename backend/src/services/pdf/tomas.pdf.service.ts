@@ -43,6 +43,24 @@ export class TomasPDFService {
       // "logo-black-bg.png"
       "black.png"
     );
+
+    // Validate logo file exists on service initialization
+    this.validateLogoFile();
+  }
+
+  /**
+   * Validate that the logo file exists
+   */
+  private async validateLogoFile(): Promise<void> {
+    try {
+      await fs.access(this.logoPath);
+      console.log(`Logo file validated: ${this.logoPath}`);
+    } catch (error) {
+      console.warn(
+        `Logo file not found during initialization: ${this.logoPath}`
+      );
+      console.warn("Service will use placeholder logo when generating PDFs");
+    }
   }
 
   /**
@@ -530,11 +548,27 @@ export class TomasPDFService {
    */
   private async loadLogoData(): Promise<Buffer> {
     try {
+      console.log(`Attempting to load logo from: ${this.logoPath}`);
+
+      // Check if file exists first
+      try {
+        await fs.access(this.logoPath);
+        console.log("Logo file exists and is accessible");
+      } catch (accessError) {
+        console.error(
+          `Logo file not accessible: ${this.logoPath}`,
+          accessError
+        );
+        throw new Error(`Logo file not accessible: ${this.logoPath}`);
+      }
+
       const logoData = await fs.readFile(this.logoPath);
-      console.log("Logo loaded successfully");
+      console.log(`Logo loaded successfully: ${logoData.length} bytes`);
       return logoData;
     } catch (error) {
       console.warn("Could not read logo file, using placeholder:", error);
+      console.log(`Current working directory: ${process.cwd()}`);
+      console.log(`Logo path: ${this.logoPath}`);
 
       // Create a simple placeholder image if logo is not found
       const placeholderData = new Uint8Array([

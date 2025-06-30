@@ -400,11 +400,7 @@ export default function TomasPraefatioChat() {
             }`}
           >
             {proposalPrice !== null ? (
-              <PayProposal
-                price={proposalPrice}
-                onPay={handlePayTomas}
-                userAddress={address}
-              />
+              <PayProposal price={proposalPrice} onPay={handlePayTomas} />
             ) : (
               // Show normal input form
               <form
