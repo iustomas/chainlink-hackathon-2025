@@ -57,7 +57,7 @@ export default buildModule("PayProposal", (m) => {
       SECRETS_SLOT,
       SECRETS_VERSION,
     ],
-    { id: "TomasPayProposalV2" }
+    { id: "TomasPayProposalV3" }
   );
 
   return { payProposal };
